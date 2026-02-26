@@ -1,0 +1,61 @@
+/* Fundo principal estilo Dark Modern */
+.root {
+    -fx-background-color: #1a1a1a;
+    -fx-font-family: "Segoe UI Semibold", "System";
+}
+
+/* Card central com borda neon suave */
+.card-form {
+    -fx-background-color: #262626;
+    -fx-background-radius: 20;
+    -fx-border-color: #3d3d3d;
+    -fx-border-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0, 0, 10);
+}
+
+/* Labels com cor vibrante */
+.label {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 13px;
+}
+
+.label-titulo {
+    -fx-text-fill: #00d2ff; /* Azul Neon */
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 2px;
+}
+
+/* Campos de entrada estilo futurista */
+.text-field, .combo-box {
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #444444;
+    -fx-border-radius: 10;
+    -fx-padding: 10;
+    -fx-prompt-text-fill: #777777;
+}
+
+.text-field:focused {
+    -fx-border-color: #00d2ff;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,210,255,0.4), 10, 0, 0, 0);
+}
+
+/* Botão Concluir estilo Chamativo */
+.button-salvar {
+    -fx-background-color: linear-gradient(to right, #00d2ff, #3a7bd5);
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12;
+    -fx-padding: 15 40;
+    -fx-cursor: hand;
+    -fx-transition: 0.3s;
+}
+
+.button-salvar:hover {
+    -fx-effect: dropshadow(gaussian, #00d2ff, 15, 0, 0, 0);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}

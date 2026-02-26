@@ -17,26 +17,11 @@ public class HelloApplication extends Application {
         // 1. Garante que o banco existe
         new DatabaseBuilder().construirTabelas();
 
-        // ---- INÍCIO DO TESTE DE GRAVAÇÃO ----
         ProdutoDAO dao = new ProdutoDAO();
 
-        // Criando a primeira bebida em memória RAM (usando nosso Enum TipoItem.PRODUTO)
-        org.example.depositobebidassys.model.Produto primeiraCerveja = new org.example.depositobebidassys.model.Produto(
-                "Heineken 600ml",
-                "Cerveja",
-                org.example.depositobebidassys.model.TipoItem.PRODUTO,
-                "7891234567890",
-                7.50, // Preço de Custo
-                12.00, // Preço de Venda
-                24 // Quantidade em Estoque (1 caixa)
-        );
-
-        // Mandando gravar no SQLite
-        dao.salvar(primeiraCerveja);
-
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-        stage.setTitle("Sistema Depósito");
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("cadastro-produto.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 450, 500); // Aumentei a tela pra caber tudo!
+        stage.setTitle("Depósito - Cadastro de Produtos");
         stage.setScene(scene);
         stage.show();
     }

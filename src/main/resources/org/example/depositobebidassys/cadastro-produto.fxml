@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.depositobebidassys.controller.ProdutoController">
+    <children>
+        <VBox alignment="CENTER" spacing="25.0">
+            <padding>
+                <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+            </padding>
+
+            <Label styleClass="label-titulo" text="MÓDULO DE ESTOQUE" />
+
+            <VBox maxWidth="700" spacing="20.0" styleClass="card-form">
+                <padding>
+                    <Insets bottom="35.0" left="35.0" right="35.0" top="35.0" />
+                </padding>
+
+                <GridPane hgap="25" vgap="20">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50" />
+                        <ColumnConstraints percentWidth="50" />
+                    </columnConstraints>
+
+                    <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Nome da Bebida" />
+                        <TextField fx:id="txtNome" promptText="Ex: Heineken 600ml" />
+                    </VBox>
+
+                    <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label text="Categoria" />
+                        <ComboBox fx:id="cbCategoria" maxWidth="Infinity" promptText="Selecione..." />
+                    </VBox>
+
+                    <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <Label text="Código de Barras" />
+                        <TextField fx:id="txtCodigoBarras" promptText="Bipe o produto aqui" />
+                    </VBox>
+
+                    <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Tipo de Cadastro" />
+                        <ComboBox fx:id="cbTipoItem" maxWidth="Infinity" />
+                    </VBox>
+
+                    <HBox spacing="15" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Preço Custo" />
+                            <TextField fx:id="txtPrecoCusto" promptText="R$ 0,00" />
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Preço Venda" />
+                            <TextField fx:id="txtPrecoVenda" promptText="R$ 0,00" />
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <Label text="Quantidade Inicial" />
+                        <TextField fx:id="txtEstoque" promptText="Qtd em estoque" />
+                    </VBox>
+                </GridPane>
+            </VBox>
+
+            <Button onAction="#onSalvar" styleClass="button-salvar" text="FINALIZAR CADASTRO" />
+        </VBox>
+    </children>
+</StackPane>
