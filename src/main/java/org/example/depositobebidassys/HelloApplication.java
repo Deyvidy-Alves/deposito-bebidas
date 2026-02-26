@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.example.depositobebidassys.dao.DatabaseBuilder;
-import org.example.depositobebidassys.dao.ProdutoDAO;
 
 import java.io.IOException;
 
@@ -22,7 +21,7 @@ public class HelloApplication extends Application {
         // Tamanho maior para acomodar a tabela de consulta confortavelmente
         Scene scene = new Scene(fxmlLoader.load(), 900, 650);
 
-        stage.setTitle("Sistema de Gestão - Depósito de Bebidas");
+        stage.setTitle("Sistema de Gestão - Depósito do Neneu");
         stage.setScene(scene);
         stage.show();
     }

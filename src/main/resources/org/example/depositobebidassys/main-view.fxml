@@ -4,6 +4,12 @@
 
 <TabPane tabClosingPolicy="UNAVAILABLE" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
     <tabs>
+        <Tab text="🛒 Frente de Caixa">
+            <content>
+                <fx:include source="venda-pdv.fxml" />
+            </content>
+        </Tab>
+
         <Tab text="➕ Novo Produto">
             <content>
                 <fx:include source="cadastro-produto.fxml" />

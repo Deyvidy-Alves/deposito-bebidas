@@ -48,16 +48,16 @@ public class DatabaseBuilder {
                 "valor REAL NOT NULL, " +
                 "forma_pagamento TEXT)";
 
-        // 5. Tabela de Receitas de Combo (Aquele esquema inteligente)
-        String sqlComboReceitas = "CREATE TABLE IF NOT EXISTS combo_receitas (" +
+        // 5. Tabela de Receitas de Combo (A união das bebidas)
+        String sqlComboItens = "CREATE TABLE IF NOT EXISTS combo_itens (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "combo_id INTEGER NOT NULL, " +
-                "produto_id INTEGER NOT NULL, " +
-                "quantidade INTEGER NOT NULL, " +
-                "FOREIGN KEY (combo_id) REFERENCES produtos(id), " +
-                "FOREIGN KEY (produto_id) REFERENCES produtos(id))";
+                "combo_id INTEGER, " +
+                "produto_id INTEGER, " +
+                "quantidade INTEGER, " +
+                "FOREIGN KEY(combo_id) REFERENCES produtos(id), " +
+                "FOREIGN KEY(produto_id) REFERENCES produtos(id))";
 
-        // Conecta e roda os comandos SQL
+        // Conecta e roda os comandos SQL (O Escopo Seguro!)
         try (Connection conn = factory.recuperarConexao();
              Statement stmt = conn.createStatement()) {
 
@@ -65,7 +65,7 @@ public class DatabaseBuilder {
             stmt.execute(sqlVendas);
             stmt.execute(sqlItensVenda);
             stmt.execute(sqlFluxoCaixa);
-            stmt.execute(sqlComboReceitas);
+            stmt.execute(sqlComboItens); // <-- Agora ele está seguro aqui dentro!
 
             System.out.println("✅ Banco de dados 'estoque.db' verificado e criado com sucesso!");
 

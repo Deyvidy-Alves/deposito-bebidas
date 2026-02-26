@@ -10,7 +10,7 @@
                 <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
             </padding>
 
-            <Label styleClass="label-titulo" text="MÓDULO DE ESTOQUE" />
+            <Label styleClass="label-titulo" text="SOS BEBIDAS" />
 
             <VBox maxWidth="700" spacing="20.0" styleClass="card-form">
                 <padding>
@@ -25,7 +25,12 @@
 
                     <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <Label text="Nome da Bebida" />
-                        <TextField fx:id="txtNome" promptText="Ex: Heineken 600ml" />
+                        <TextField fx:id="txtNome" promptText="Ex: Skol, Coca-Cola, Red Label" />
+                    </VBox>
+
+                    <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Volume / Embalagem" />
+                        <ComboBox fx:id="cbVolume" maxWidth="Infinity" promptText="Selecione..." />
                     </VBox>
 
                     <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">

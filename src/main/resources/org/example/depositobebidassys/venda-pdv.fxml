@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.depositobebidassys.controller.VendaController">
+    <children>
+        <HBox spacing="20.0" alignment="CENTER">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+
+            <VBox spacing="15.0" styleClass="card-form" prefWidth="350">
+                <padding>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                </padding>
+                <Label styleClass="label-titulo" text="🛒 FRENTE DE CAIXA" />
+                <Separator opacity="0.3" />
+                <Label text="Buscar Bebida ou Combo:" />
+                <ComboBox fx:id="cbProdutoVenda" promptText="Selecione..." maxWidth="Infinity" />
+                <VBox spacing="5">
+                    <Label text="Quantidade:" />
+                    <TextField fx:id="txtQtdVenda" promptText="Ex: 2" />
+                </VBox>
+                <Button onAction="#adicionarAoCarrinho" text="➕ ADICIONAR AO CARRINHO" styleClass="button-salvar" maxWidth="Infinity" style="-fx-padding: 15;" />
+            </VBox>
+
+            <VBox spacing="15.0" styleClass="card-form" HBox.hgrow="ALWAYS">
+                <padding>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                </padding>
+
+                <TableView fx:id="tabelaCarrinho" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colNomeCarrinho" text="Produto / Combo" prefWidth="250" />
+                        <TableColumn fx:id="colQtdCarrinho" text="Qtd" prefWidth="80" />
+                        <TableColumn fx:id="colPrecoCarrinho" text="Preço Un." prefWidth="100" />
+                        <TableColumn fx:id="colSubtotalCarrinho" text="Subtotal" prefWidth="100" />
+                    </columns>
+                </TableView>
+
+                <Button onAction="#removerDoCarrinho" text="🗑️ REMOVER ITEM SELECIONADO"
+                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"
+                        maxWidth="Infinity" />
+
+                <Separator opacity="0.3" />
+
+                <HBox alignment="CENTER_RIGHT" spacing="20">
+                    <Label text="TOTAL A PAGAR:" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;" />
+                    <Label fx:id="lblTotalVenda" text="R$ 0,00" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #00d2ff;" />
+                </HBox>
+
+                <Button onAction="#finalizarVenda" text="💵 FINALIZAR VENDA"
+                        style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 15; -fx-background-radius: 8; -fx-cursor: hand;"
+                        maxWidth="Infinity" />
+            </VBox>
+        </HBox>
+    </children>
+</StackPane>

@@ -11,6 +11,9 @@
     <HBox alignment="CENTER_LEFT" spacing="20">
         <Label styleClass="label-titulo" text="CONTROLE DE ESTOQUE" />
         <Region HBox.hgrow="ALWAYS" />
+
+        <TextField fx:id="txtFiltro" promptText="🔍 Buscar nome ou categoria..." prefWidth="280" />
+
         <Button onAction="#atualizarTabela" styleClass="button-refresh" text="🔄 Atualizar" />
     </HBox>
 
@@ -23,4 +26,13 @@
             <TableColumn fx:id="colVenda" text="Venda (R$)" prefWidth="100" />
         </columns>
     </TableView>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="✏️ EDITAR SELECIONADO" onAction="#prepararEdicao"
+                style="-fx-background-color: #f1c40f; -fx-text-fill: black; -fx-font-weight: bold;" />
+
+        <Button text="🗑️ EXCLUIR ITEM" onAction="#deletarProduto"
+                style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;" />
+    </HBox>
+
 </VBox>
