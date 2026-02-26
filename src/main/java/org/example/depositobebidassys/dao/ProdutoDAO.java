@@ -55,6 +55,10 @@ public class ProdutoDAO {
                 p.setId(rs.getInt("id"));
                 p.setNome(rs.getString("nome"));
                 p.setCategoria(rs.getString("categoria"));
+
+                // --- NOVO: Puxando o preço de custo do banco de dados ---
+                p.setPrecoCusto(rs.getDouble("preco_custo"));
+
                 p.setPrecoVenda(rs.getDouble("preco_venda"));
                 p.setEstoqueAtual(rs.getInt("estoque_atual"));
 
@@ -129,18 +133,17 @@ public class ProdutoDAO {
         }
     }
 
-    /**
-     * Atualiza os dados básicos e o nível de estoque de um produto existente.
-     */
     public void atualizar(Produto produto) {
-        String sql = "UPDATE produtos SET nome = ?, preco_venda = ?, estoque_atual = ? WHERE id = ?";
+        // Adicionamos o preco_custo no UPDATE
+        String sql = "UPDATE produtos SET nome = ?, preco_custo = ?, preco_venda = ?, estoque_atual = ? WHERE id = ?";
         try (Connection conn = new ConnectionFactory().recuperarConexao();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, produto.getNome());
-            stmt.setDouble(2, produto.getPrecoVenda());
-            stmt.setInt(3, produto.getEstoqueAtual());
-            stmt.setInt(4, produto.getId());
+            stmt.setDouble(2, produto.getPrecoCusto()); // NOVO CAMPO
+            stmt.setDouble(3, produto.getPrecoVenda());
+            stmt.setInt(4, produto.getEstoqueAtual());
+            stmt.setInt(5, produto.getId());
 
             stmt.executeUpdate();
         } catch (SQLException e) {

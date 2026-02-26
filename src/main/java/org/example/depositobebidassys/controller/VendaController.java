@@ -25,6 +25,7 @@ public class VendaController {
     @FXML private TableColumn<ItemCarrinho, Double> colPrecoCarrinho;
     @FXML private TableColumn<ItemCarrinho, Double> colSubtotalCarrinho;
     @FXML private Label lblTotalVenda;
+    private double descontoTotal = 0.0;
 
     private ProdutoDAO dao = new ProdutoDAO();
     private ObservableList<ItemCarrinho> listaCarrinho = FXCollections.observableArrayList();
@@ -61,7 +62,6 @@ public class VendaController {
         try {
             int qtdPedida = Integer.parseInt(qtdTexto);
 
-            // VALIDAÇÃO DE ESTOQUE (Regra de Negócio)
             if (produtoSelecionado.getTipoItem() == TipoItem.PRODUTO) {
                 if (produtoSelecionado.getEstoqueAtual() < qtdPedida) {
                     mostrarAlerta("Estoque Insuficiente",
@@ -70,8 +70,6 @@ public class VendaController {
                     return;
                 }
             }
-            // Se for COMBO, a validação ideal seria checar os ingredientes,
-            // mas por enquanto, validar a unidade já evita o erro que você viu.
 
             ItemCarrinho item = new ItemCarrinho(produtoSelecionado, qtdPedida);
             listaCarrinho.add(item);
@@ -92,14 +90,22 @@ public class VendaController {
             return;
         }
 
-        // Chama o DAO que acabamos de criar
+        // --- NOVO: Lógica Matemática do Lucro ---
+        double lucroLiquidoTotal = 0.0;
+        for (ItemCarrinho item : listaCarrinho) {
+            double custoUnidade = item.getProduto().getPrecoCusto();
+            double vendaUnidade = item.getProduto().getPrecoVenda();
+
+            // Subtrai custo da venda e multiplica pela qtd de itens levados
+            lucroLiquidoTotal += (vendaUnidade - custoUnidade) * item.getQuantidade();
+        }
+
         VendaDAO vendaDAO = new VendaDAO();
-        boolean sucesso = vendaDAO.registrarVenda(listaCarrinho, totalCompra);
+        // --- NOVO: Passando o lucroLiquidoTotal para o DAO ---
+        boolean sucesso = vendaDAO.registrarVenda(listaCarrinho, totalCompra, lucroLiquidoTotal);
 
         if (sucesso) {
             mostrarAlerta("Sucesso", "Venda finalizada! O estoque foi atualizado automaticamente.", Alert.AlertType.INFORMATION);
-
-            // Limpa o carrinho pro próximo cliente do depósito
             listaCarrinho.clear();
             totalCompra = 0.0;
             lblTotalVenda.setText("R$ 0,00");
@@ -110,7 +116,6 @@ public class VendaController {
 
     @FXML
     public void removerDoCarrinho(ActionEvent event) {
-        // 1. Pega o item que o Manel clicou na tabela
         ItemCarrinho itemSelecionado = tabelaCarrinho.getSelectionModel().getSelectedItem();
 
         if (itemSelecionado == null) {
@@ -118,13 +123,8 @@ public class VendaController {
             return;
         }
 
-        // 2. Remove da lista que aparece na tela
         listaCarrinho.remove(itemSelecionado);
-
-        // 3. Recalcula o Total a Pagar subtraindo o subtotal do item removido
         totalCompra -= itemSelecionado.getSubtotal();
-
-        // Garante que o total não fique negativo por erro de arredondamento
         if (totalCompra < 0) totalCompra = 0;
 
         lblTotalVenda.setText(String.format("R$ %.2f", totalCompra));
@@ -136,6 +136,39 @@ public class VendaController {
         alert.setHeaderText(null);
         alert.setContentText(mensagem);
         alert.showAndWait();
+    }
+
+    @FXML
+    public void aplicarDesconto(ActionEvent event) {
+        if (listaCarrinho.isEmpty()) {
+            mostrarAlerta("Atenção", "Adicione itens antes de dar desconto!", Alert.AlertType.WARNING);
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog("0.00");
+        dialog.setTitle("Aplicar Desconto");
+        dialog.setHeaderText("Valor do desconto (R$):");
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+
+        dialog.showAndWait().ifPresent(valor -> {
+            try {
+                double desc = Double.parseDouble(valor.replace(",", "."));
+                if (desc > totalCompra) {
+                    mostrarAlerta("Erro", "Desconto não pode ser maior que a compra!", Alert.AlertType.ERROR);
+                    return;
+                }
+                descontoTotal = desc;
+                atualizarTotalFinal();
+            } catch (NumberFormatException e) {
+                mostrarAlerta("Erro", "Valor inválido!", Alert.AlertType.ERROR);
+            }
+        });
+    }
+
+    // metodo auxiliar para recalcular a tela
+    private void atualizarTotalFinal() {
+        double totalComDesconto = totalCompra - descontoTotal;
+        lblTotalVenda.setText(String.format("R$ %.2f", totalComDesconto));
     }
 
 }

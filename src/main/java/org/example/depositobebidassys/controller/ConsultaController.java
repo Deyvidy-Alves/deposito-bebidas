@@ -13,6 +13,7 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 import org.example.depositobebidassys.dao.ProdutoDAO;
 import org.example.depositobebidassys.model.Produto;
+import org.example.depositobebidassys.model.TipoItem;
 
 public class ConsultaController {
 
@@ -24,21 +25,35 @@ public class ConsultaController {
     @FXML private TableColumn<Produto, Double> colVenda;
     @FXML private TextField txtFiltro;
     @FXML private Label lblStatus;
+    @FXML private TableColumn<Produto, Double> colCusto;
 
     private ProdutoDAO dao = new ProdutoDAO();
     private ObservableList<Produto> listaMaster = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        // Vinculação das colunas com os atributos da classe Produto
         colID.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colEstoque.setCellValueFactory(new PropertyValueFactory<>("estoqueAtual"));
         colVenda.setCellValueFactory(new PropertyValueFactory<>("precoVenda"));
+        colCusto.setCellValueFactory(new PropertyValueFactory<>("precoCusto"));
 
-        // Habilita selecionar vários itens com Ctrl ou Shift
         tabelaProdutos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        tabelaProdutos.setRowFactory(tv -> new TableRow<Produto>() {
+            @Override
+            protected void updateItem(Produto item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setStyle("");
+                } else if (item.getTipoItem() != TipoItem.COMBO && item.getEstoqueAtual() < 10) {
+                    setStyle("-fx-background-color: rgba(207, 102, 121, 0.15); -fx-border-color: #cf6679;");
+                } else {
+                    setStyle("");
+                }
+            }
+        });
 
         atualizarTabela();
     }
@@ -65,7 +80,6 @@ public class ConsultaController {
     @FXML
     public void deletarEmLote(ActionEvent event) {
         ObservableList<Produto> selecionados = tabelaProdutos.getSelectionModel().getSelectedItems();
-
         if (selecionados.isEmpty()) {
             mostrarToast("⚠️ Selecione os itens primeiro!");
             return;
@@ -74,6 +88,9 @@ public class ConsultaController {
         Alert confirma = new Alert(Alert.AlertType.CONFIRMATION);
         confirma.setTitle("Excluir em Lote");
         confirma.setHeaderText("Apagar " + selecionados.size() + " itens selecionados?");
+
+        // --- INJEÇÃO DO CSS NO ALERTA ---
+        confirma.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
 
         if (confirma.showAndWait().get() == ButtonType.OK) {
             for (Produto p : selecionados) {
@@ -87,7 +104,6 @@ public class ConsultaController {
     private void mostrarToast(String mensagem) {
         lblStatus.setText(mensagem);
         lblStatus.setOpacity(1.0);
-
         FadeTransition fade = new FadeTransition(Duration.seconds(2), lblStatus);
         fade.setFromValue(1.0);
         fade.setToValue(0.0);
@@ -108,6 +124,9 @@ public class ConsultaController {
         dialog.setTitle("Ajuste de Produto");
         dialog.setHeaderText("Editando: " + selecionado.getNome());
 
+        // --- INJEÇÃO DO CSS NO MODAL DE EDIÇÃO ---
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+
         ButtonType botaoSalvar = new ButtonType("Salvar", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(botaoSalvar, ButtonType.CANCEL);
 
@@ -116,12 +135,14 @@ public class ConsultaController {
         grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
 
         TextField txtNome = new TextField(selecionado.getNome());
+        TextField txtCusto = new TextField(String.valueOf(selecionado.getPrecoCusto()));
         TextField txtPreco = new TextField(String.valueOf(selecionado.getPrecoVenda()));
         TextField txtEstoque = new TextField(String.valueOf(selecionado.getEstoqueAtual()));
 
         grid.add(new Label("Nome:"), 0, 0); grid.add(txtNome, 1, 0);
-        grid.add(new Label("Preço R$:"), 0, 1); grid.add(txtPreco, 1, 1);
-        grid.add(new Label("Estoque:"), 0, 2); grid.add(txtEstoque, 1, 2);
+        grid.add(new Label("Custo R$:"), 0, 1); grid.add(txtCusto, 1, 1);
+        grid.add(new Label("Venda R$:"), 0, 2); grid.add(txtPreco, 1, 2);
+        grid.add(new Label("Estoque:"), 0, 3); grid.add(txtEstoque, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -129,6 +150,7 @@ public class ConsultaController {
             if (response == botaoSalvar) {
                 try {
                     selecionado.setNome(txtNome.getText());
+                    selecionado.setPrecoCusto(Double.parseDouble(txtCusto.getText().replace(",", ".")));
                     selecionado.setPrecoVenda(Double.parseDouble(txtPreco.getText().replace(",", ".")));
                     selecionado.setEstoqueAtual(Integer.parseInt(txtEstoque.getText()));
 
@@ -147,7 +169,10 @@ public class ConsultaController {
         alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(mensagem);
+
+        // --- INJEÇÃO DO CSS NO ALERTA DE ERRO/SUCESSO ---
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+
         alert.showAndWait();
     }
-
 }

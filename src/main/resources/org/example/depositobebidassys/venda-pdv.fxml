@@ -32,16 +32,14 @@
 
                 <TableView fx:id="tabelaCarrinho" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="colNomeCarrinho" text="Produto / Combo" prefWidth="250" />
-                        <TableColumn fx:id="colQtdCarrinho" text="Qtd" prefWidth="80" />
-                        <TableColumn fx:id="colPrecoCarrinho" text="Preço Un." prefWidth="100" />
-                        <TableColumn fx:id="colSubtotalCarrinho" text="Subtotal" prefWidth="100" />
+                        <TableColumn fx:id="colNomeCarrinho" text="Produto / Combo" prefWidth="250" resizable="false" reorderable="false" />
+                        <TableColumn fx:id="colQtdCarrinho" text="Qtd" prefWidth="80" resizable="false" reorderable="false" />
+                        <TableColumn fx:id="colPrecoCarrinho" text="Preço Un." prefWidth="100" resizable="false" reorderable="false" />
+                        <TableColumn fx:id="colSubtotalCarrinho" text="Subtotal" prefWidth="100" resizable="false" reorderable="false" />
                     </columns>
                 </TableView>
 
-                <Button onAction="#removerDoCarrinho" text="🗑️ REMOVER ITEM SELECIONADO"
-                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"
-                        maxWidth="Infinity" />
+                <Button onAction="#removerDoCarrinho" text="🗑️ REMOVER ITEM SELECIONADO" styleClass="button-perigo" maxWidth="Infinity" />
 
                 <Separator opacity="0.3" />
 

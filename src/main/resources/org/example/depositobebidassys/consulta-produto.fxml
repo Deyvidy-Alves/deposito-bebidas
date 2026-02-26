@@ -19,11 +19,14 @@
 
     <TableView fx:id="tabelaProdutos" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colID" text="ID" prefWidth="50" />
-            <TableColumn fx:id="colNome" text="Produto" prefWidth="250" />
-            <TableColumn fx:id="colCategoria" text="Categoria" prefWidth="150" />
-            <TableColumn fx:id="colEstoque" text="Qtd" prefWidth="80" />
-            <TableColumn fx:id="colVenda" text="Venda (R$)" prefWidth="100" />
+            <TableColumn fx:id="colID" text="ID" prefWidth="40" resizable="false" reorderable="false" />
+            <TableColumn fx:id="colNome" text="Produto" prefWidth="230" resizable="false" reorderable="false" />
+            <TableColumn fx:id="colCategoria" text="Categoria" prefWidth="120" resizable="false" reorderable="false" />
+            <TableColumn fx:id="colEstoque" text="Qtd" prefWidth="60" resizable="false" reorderable="false" />
+
+            <TableColumn fx:id="colCusto" text="Custo (R$)" prefWidth="90" resizable="false" reorderable="false" />
+
+            <TableColumn fx:id="colVenda" text="Venda (R$)" prefWidth="90" resizable="false" reorderable="false" />
         </columns>
     </TableView>
 

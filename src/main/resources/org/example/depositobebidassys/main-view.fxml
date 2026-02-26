@@ -27,5 +27,11 @@
                 <fx:include source="consulta-produto.fxml" />
             </content>
         </Tab>
+
+        <Tab text="📊 Financeiro">
+            <content>
+                <fx:include source="relatorio-view.fxml" />
+            </content>
+        </Tab>
     </tabs>
 </TabPane>

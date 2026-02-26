@@ -1,18 +1,21 @@
+/* =========================================
+   ESTILO GERAL (Dark Mode Premium)
+   ========================================= */
+
 /* --- FONTE E FUNDO GERAL --- */
 .root {
-    -fx-background-color: #1a1a1a; /* Fundo BEM escuro */
-    /* Fonte moderna padrão do Windows, se não tiver, usa as outras */
+    -fx-background-color: #1a1a1a;
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
 }
 
 /* --- Labels e Títulos --- */
 .label {
-    -fx-text-fill: #e0e0e0; /* Texto quase branco para leitura fácil */
+    -fx-text-fill: #e0e0e0;
 }
 
 .label-titulo {
-    -fx-text-fill: #00d2ff; /* Azul Neon */
+    -fx-text-fill: #00d2ff;
     -fx-font-size: 24px;
     -fx-font-weight: bold;
     -fx-effect: dropshadow(gaussian, rgba(0,210,255,0.3), 10, 0, 0, 0);
@@ -20,7 +23,7 @@
 
 /* --- CARDS (Formulários) --- */
 .card-form {
-    -fx-background-color: #262626; /* Cinza chumbo */
+    -fx-background-color: #262626;
     -fx-background-radius: 15;
     -fx-border-color: #3d3d3d;
     -fx-border-radius: 15;
@@ -39,21 +42,20 @@
 }
 
 .text-field:focused, .combo-box:focused, .text-area:focused {
-    -fx-border-color: #00d2ff; /* Brilho azul ao clicar */
+    -fx-border-color: #00d2ff;
     -fx-effect: dropshadow(three-pass-box, rgba(0,210,255,0.2), 5, 0, 0, 0);
 }
 
 .combo-box-popup .list-view,
 .combo-box-popup .list-view .list-cell {
-    -fx-background-color: #333333; /* Fundo cinza escuro forçado */
-    -fx-text-fill: white;          /* Texto branco forçado */
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
 }
 
 .combo-box > .list-cell {
-    -fx-text-fill: white; /* Força o texto selecionado a ficar branco */
+    -fx-text-fill: white;
 }
 
-/* Cor ao passar o mouse ou selecionar (Azul Neon) */
 .combo-box-popup .list-view .list-cell:hover,
 .combo-box-popup .list-view .list-cell:filled:selected {
     -fx-background-color: #00d2ff;
@@ -61,7 +63,10 @@
     -fx-font-weight: bold;
 }
 
-/* --- BOTÕES --- */
+/* =========================================
+   BOTÕES MODERNOS
+   ========================================= */
+
 .button-salvar {
     -fx-background-color: linear-gradient(to right, #00d2ff, #007acc);
     -fx-text-fill: white;
@@ -73,7 +78,6 @@
     -fx-effect: dropshadow(gaussian, #00d2ff, 10, 0, 0, 0);
 }
 
-/* Botão de Atualizar (mais discreto) */
 .button-refresh {
     -fx-background-color: #3d3d3d;
     -fx-text-fill: #00d2ff;
@@ -87,78 +91,113 @@
     -fx-text-fill: #1a1a1a;
 }
 
-/* --- TABELA (TableView) - FIM DO BRANCO --- */
-.table-view {
-    -fx-background-color: transparent; /* Fundo transparente */
-    -fx-border-color: #3d3d3d;
+/* Botões Limpos (Editar e Excluir) */
+.button-editar {
+    -fx-background-color: #f39c12;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 12 25;
+    -fx-cursor: hand;
+}
+.button-editar:hover {
+    -fx-background-color: #f1c40f;
 }
 
-/* Cabeçalho das colunas */
-.table-view .column-header-background {
+.button-perigo {
+    -fx-background-color: #e74c3c;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 12 25;
+    -fx-cursor: hand;
+}
+.button-perigo:hover {
+    -fx-background-color: #c0392b;
+}
+
+/* =========================================
+   TABELA (TableView) PREMIUM
+   ========================================= */
+
+.table-view {
     -fx-background-color: #262626;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #3d3d3d;
+    -fx-padding: 8;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: transparent;
 }
 .table-view .column-header, .table-view .filler {
-    -fx-background-color: transparent;
-    -fx-border-color: #3d3d3d;
-    -fx-border-width: 0 1 1 0;
+    -fx-background-color: #1a1a1a;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-color: #00d2ff;
 }
 .table-view .column-header .label {
-    -fx-text-fill: #00d2ff; /* Títulos em azul neon */
+    -fx-text-fill: #aaaaaa;
     -fx-font-weight: bold;
-    -fx-alignment: center-left;
+    -fx-padding: 12 5; /* Mais respiro no título */
 }
 
-/* Linhas da tabela */
+/* Linhas mais altas e limpas */
 .table-row-cell {
-    -fx-background-color: #262626; /* Cor das linhas com dados */
-    -fx-border-color: transparent transparent #333333 transparent;
+    -fx-background-color: transparent;
+    -fx-cell-size: 45px;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #333333;
 }
-.table-row-cell:odd {
-    -fx-background-color: #2a2a2a; /* Linhas ímpares um pouco mais claras */
+.table-row-cell:hover {
+    -fx-background-color: rgba(0, 210, 255, 0.05);
 }
 .table-row-cell:selected {
-    -fx-background-color: #004e92; /* Cor ao selecionar uma linha */
+    -fx-background-color: rgba(0, 210, 255, 0.2);
+    -fx-border-color: #00d2ff;
 }
 .table-cell {
-    -fx-text-fill: white; /* Cor do texto dos dados */
+    -fx-text-fill: white;
     -fx-alignment: center-left;
 }
 
-/* Área vazia da tabela (o quadrado branco gigante) */
 .table-view .placeholder .label {
-    -fx-text-fill: #888888; /* Texto "Não há conteúdo" */
+    -fx-text-fill: #888888;
 }
 
-/* --- MENU SUPERIOR (TabPane) --- */
+/* =========================================
+   MENU SUPERIOR (TabPane)
+   ========================================= */
+
 .tab-pane .tab-header-area .tab-header-background {
-    -fx-background-color: #1a1a1a; /* Fundo da barra superior */
+    -fx-background-color: #1a1a1a;
 }
 
 .tab {
-    -fx-background-color: #333333; /* Cor do botão inativo */
+    -fx-background-color: #333333;
     -fx-background-insets: 0 2 0 0;
-    -fx-background-radius: 5 5 0 0; /* Arredonda só em cima */
+    -fx-background-radius: 5 5 0 0;
     -fx-padding: 8 15;
     -fx-cursor: hand;
 }
 
 .tab:selected {
-    -fx-background-color: #262626; /* Cor do botão ativo */
+    -fx-background-color: #262626;
     -fx-border-color: #00d2ff;
-    -fx-border-width: 0 0 3 0; /* Linha neon embaixo */
+    -fx-border-width: 0 0 3 0;
 }
 
 .tab .tab-label {
-    -fx-text-fill: #aaaaaa; /* Texto inativo */
+    -fx-text-fill: #aaaaaa;
     -fx-font-weight: bold;
 }
 
 .tab:selected .tab-label {
-    -fx-text-fill: #00d2ff; /* Texto ativo neon */
+    -fx-text-fill: #00d2ff;
     -fx-effect: dropshadow(gaussian, rgba(0,210,255,0.5), 5, 0, 0, 0);
 }
 
-/* --- NOTIFICAÇÕES TOAST (Não bloqueantes) --- */
+/* --- NOTIFICAÇÕES TOAST --- */
 .label-status {
     -fx-text-fill: #00d2ff;
     -fx-font-weight: bold;
@@ -166,17 +205,128 @@
     -fx-background-color: rgba(0, 210, 255, 0.1);
     -fx-padding: 5 15;
     -fx-background-radius: 20;
-    -fx-opacity: 0; /* Começa invisível */
+    -fx-opacity: 0;
 }
 
-.button-excluir-lote {
-    -fx-background-color: #cf6679;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-radius: 8;
-    -fx-cursor: hand;
+/* =========================================
+   CARDS DO DASHBOARD FINANCEIRO
+   ========================================= */
+
+.card-kpi {
+    -fx-background-color: #262626;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 0 0 0 5;
+    -fx-padding: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0, 2, 2);
 }
-.button-excluir-lote:hover {
-    -fx-background-color: #ff4d6d;
-    -fx-effect: dropshadow(gaussian, #cf6679, 10, 0, 0, 0);
+
+.card-faturamento { -fx-border-color: transparent transparent transparent #00d2ff; }
+.card-lucro { -fx-border-color: transparent transparent transparent #2ecc71; }
+.card-vendas { -fx-border-color: transparent transparent transparent #f1c40f; }
+.card-ticket { -fx-border-color: transparent transparent transparent #9b59b6; }
+
+.titulo-kpi {
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.valor-kpi {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+/* =========================================
+   CORREÇÕES DE BUGS DO JAVAFX (DARK MODE)
+   ========================================= */
+
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 10px;
+}
+.chart-legend-item {
+    -fx-text-fill: #e0e0e0;
+}
+
+/* --- DATEPICKER --- */
+.date-picker {
+    -fx-background-color: transparent;
+}
+.date-picker > .text-field {
+    -fx-background-color: #333333;
+    -fx-control-inner-background: #333333;
+    -fx-text-fill: white;
+    -fx-background-radius: 5 0 0 5;
+    -fx-border-color: #444444;
+    -fx-border-radius: 5 0 0 5;
+}
+.date-picker > .arrow-button {
+    -fx-background-color: #3d3d3d;
+    -fx-background-radius: 0 5 5 0;
+    -fx-border-color: #444444;
+    -fx-border-radius: 0 5 5 0;
+}
+.date-picker > .arrow-button > .arrow {
+    -fx-background-color: #00d2ff;
+}
+.date-picker > .text-field:focused {
+    -fx-border-color: #00d2ff;
+}
+
+/* --- GRÁFICOS --- */
+.chart, .chart-content, .chart-plot-background {
+    -fx-background-color: transparent;
+    -fx-padding: 5px;
+}
+.chart-alternative-row-fill, .chart-alternative-column-fill {
+    -fx-fill: transparent;
+    -fx-stroke: transparent;
+}
+.axis {
+    -fx-tick-label-fill: #aaaaaa;
+}
+.axis-tick-mark, .axis-minor-tick-mark {
+    -fx-stroke: #444444;
+}
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
+    -fx-stroke: #333333;
+    -fx-stroke-dash-array: 5, 5;
+}
+
+/* --- LINHA DO FATURAMENTO --- */
+.default-color0.chart-series-area-fill {
+    -fx-fill: rgba(0, 210, 255, 0.2);
+}
+.default-color0.chart-series-area-line {
+    -fx-stroke: #00d2ff;
+    -fx-stroke-width: 2px;
+}
+.default-color0.chart-area-symbol {
+    -fx-background-color: #00d2ff, #262626;
+}
+
+/* =========================================
+   ESTILIZAÇÃO DE MODAIS (Dialogs e Alerts)
+   ========================================= */
+
+.dialog-pane {
+    -fx-background-color: #262626;
+    -fx-border-color: #3d3d3d;
+    -fx-border-width: 2px;
+}
+.dialog-pane > .header-panel {
+    -fx-background-color: #1a1a1a;
+}
+.dialog-pane > .header-panel > .label {
+    -fx-text-fill: #00d2ff;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+.dialog-pane > .content.label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+.dialog-pane > .button-bar > .container {
+    -fx-background-color: #1a1a1a;
 }

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.depositobebidassys.controller.RelatorioController">
+    <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
+
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label styleClass="label-titulo" text="📊 PAINEL DE RESULTADOS" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Label text="Período:" style="-fx-text-fill: white;"/>
+        <DatePicker fx:id="dpInicio" promptText="Início" prefWidth="130"/>
+        <Label text="até" style="-fx-text-fill: white;"/>
+        <DatePicker fx:id="dpFim" promptText="Fim" prefWidth="130"/>
+        <Button text="Filtrar" onAction="#filtrarDadosForcado" styleClass="button-refresh"/>
+    </HBox>
+
+    <HBox spacing="15">
+        <VBox styleClass="card-kpi, card-faturamento" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="5">
+            <Label text="FATURAMENTO" styleClass="titulo-kpi"/>
+            <Label fx:id="lblFaturamento" text="R$ 0,00" styleClass="valor-kpi" style="-fx-text-fill: #00d2ff;"/>
+        </VBox>
+        <VBox styleClass="card-kpi, card-lucro" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="5">
+            <Label text="LUCRO LÍQUIDO" styleClass="titulo-kpi"/>
+            <Label fx:id="lblLucro" text="R$ 0,00" styleClass="valor-kpi" style="-fx-text-fill: #2ecc71;"/>
+        </VBox>
+        <VBox styleClass="card-kpi, card-vendas" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="5">
+            <Label text="VENDAS" styleClass="titulo-kpi"/>
+            <Label fx:id="lblQtdVendas" text="0" styleClass="valor-kpi" style="-fx-text-fill: #f1c40f;"/>
+        </VBox>
+        <VBox styleClass="card-kpi, card-ticket" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="5">
+            <Label text="TICKET MÉDIO" styleClass="titulo-kpi"/>
+            <Label fx:id="lblTicketMedio" text="R$ 0,00" styleClass="valor-kpi" style="-fx-text-fill: #9b59b6;"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <VBox spacing="15" HBox.hgrow="ALWAYS">
+            <VBox styleClass="card-form" prefHeight="250">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <Label text="Evolução de Faturamento" styleClass="titulo-kpi"/>
+                <AreaChart fx:id="graficoEvolucao" legendVisible="false" VBox.vgrow="ALWAYS">
+                    <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
+                    <yAxis><NumberAxis side="LEFT" /></yAxis>
+                </AreaChart>
+            </VBox>
+
+            <VBox styleClass="card-form" VBox.vgrow="ALWAYS" spacing="10">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <Label text="Histórico de Vendas" styleClass="titulo-kpi"/>
+                <TableView fx:id="tabelaHistorico" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colDataHora" text="Data/Hora" prefWidth="150" resizable="false" reorderable="false" />
+                        <TableColumn fx:id="colIdVenda" text="Nº Venda" prefWidth="80" resizable="false" reorderable="false" />
+                        <TableColumn fx:id="colValorTotal" text="Total (R$)" prefWidth="120" resizable="false" reorderable="false" />
+                        <TableColumn fx:id="colLucro" text="Lucro (R$)" prefWidth="120" resizable="false" reorderable="false" />
+                    </columns>
+                </TableView>
+            </VBox>
+        </VBox>
+
+        <VBox styleClass="card-form" prefWidth="320">
+            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+            <Label text="Top 5 Produtos" styleClass="titulo-kpi"/>
+            <PieChart fx:id="graficoTopProdutos" legendSide="BOTTOM" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </HBox>
+</VBox>
