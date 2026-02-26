@@ -1,4 +1,4 @@
-package com.seuamigo.deposito.dao; // Mude se o seu pacote for diferente
+package org.example.depositobebidassys.dao;
 
 import java.io.File;
 import java.sql.Connection;
