@@ -13,7 +13,6 @@ public class ProdutoController {
     // O @FXML "linka" a variável do Java com o campo de texto lá na tela
     @FXML private TextField txtNome;
     @FXML private ComboBox<String> cbCategoria;
-    @FXML private ComboBox<TipoItem> cbTipoItem;
     @FXML private TextField txtCodigoBarras;
     @FXML private TextField txtPrecoCusto;
     @FXML private TextField txtPrecoVenda;
@@ -22,27 +21,23 @@ public class ProdutoController {
 
     @FXML
     public void initialize() {
-        // Mantém o que já tinha do TipoItem
-        cbTipoItem.getItems().setAll(TipoItem.values());
-        cbTipoItem.setValue(TipoItem.PRODUTO);
 
-        // ADICIONE AS CATEGORIAS AQUI:
+        // Corrigindo a lista de categorias
         cbCategoria.getItems().addAll(
-                cbCategoria.getItems().addAll(
-                        "Cerveja (Lata/Long Neck)",
-                        "Cerveja (600ml/Litrão)",
-                        "Refrigerante",
-                        "Água",
-                        "Gelo",
-                        "Whisky",
-                        "Vodka",
-                        "Cachaça",
-                        "Gin",
-                        "Vinho e Espumante",
-                        "Energético",
-                        "Isotônico",
-                        "suco",
-                        "Outros"
+                "Cerveja (Lata/Long Neck)",
+                "Cerveja (600ml/Litrão)",
+                "Refrigerante",
+                "Água",
+                "Gelo",
+                "Whisky",
+                "Vodka",
+                "Cachaça",
+                "Gin",
+                "Vinho e Espumante",
+                "Energético",
+                "Isotônico",
+                "Suco",
+                "Outros"
         );
         cbCategoria.setPromptText("Selecione a Categoria");
     }
@@ -54,8 +49,8 @@ public class ProdutoController {
             Produto p = new Produto();
             p.setNome(txtNome.getText());
             p.setCategoria(cbCategoria.getValue());
-            p.setTipoItem(cbTipoItem.getValue());
             p.setCodigoBarras(txtCodigoBarras.getText());
+            p.setTipoItem(TipoItem.PRODUTO);
 
             // O replace(",", ".") garante que não vai dar erro se ele digitar R$ 7,50 com vírgula
             p.setPrecoCusto(Double.parseDouble(txtPrecoCusto.getText().replace(",", ".")));
@@ -82,9 +77,6 @@ public class ProdutoController {
         // Forma correta de limpar ComboBox no JavaFX:
         cbCategoria.getSelectionModel().clearSelection();
         cbCategoria.setPromptText("Selecione a Categoria");
-
-        // Reseta o tipo para o padrão
-        cbTipoItem.setValue(TipoItem.PRODUTO);
 
         txtCodigoBarras.clear();
         txtPrecoCusto.clear();

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<TabPane tabClosingPolicy="UNAVAILABLE" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <tabs>
+        <Tab text="➕ Novo Produto">
+            <content>
+                <fx:include source="cadastro-produto.fxml" />
+            </content>
+        </Tab>
+
+        <Tab text="🍹 Montar Combo">
+            <content>
+                <fx:include source="cadastro-combo.fxml" />
+            </content>
+        </Tab>
+
+        <Tab text="📦 Consultar Estoque">
+            <content>
+                <fx:include source="consulta-produto.fxml" />
+            </content>
+        </Tab>
+    </tabs>
+</TabPane>

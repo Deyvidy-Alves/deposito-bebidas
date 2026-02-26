@@ -38,11 +38,6 @@
                         <TextField fx:id="txtCodigoBarras" promptText="Bipe o produto aqui" />
                     </VBox>
 
-                    <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <Label text="Tipo de Cadastro" />
-                        <ComboBox fx:id="cbTipoItem" maxWidth="Infinity" />
-                    </VBox>
-
                     <HBox spacing="15" GridPane.columnIndex="1" GridPane.rowIndex="1">
                         <VBox spacing="8" HBox.hgrow="ALWAYS">
                             <Label text="Preço Custo" />

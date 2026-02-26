@@ -13,15 +13,16 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-
-        // 1. Garante que o banco existe
+        // 1. Garante o banco
         new DatabaseBuilder().construirTabelas();
 
-        ProdutoDAO dao = new ProdutoDAO();
+        // 2. Carrega o Menu Principal (que já inclui as outras telas)
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("main-view.fxml"));
 
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("cadastro-produto.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 450, 500); // Aumentei a tela pra caber tudo!
-        stage.setTitle("Depósito - Cadastro de Produtos");
+        // Tamanho maior para acomodar a tabela de consulta confortavelmente
+        Scene scene = new Scene(fxmlLoader.load(), 900, 650);
+
+        stage.setTitle("Sistema de Gestão - Depósito de Bebidas");
         stage.setScene(scene);
         stage.show();
     }

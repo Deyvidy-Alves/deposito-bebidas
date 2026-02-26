@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.depositobebidassys.controller.ComboController">
+    <children>
+        <VBox alignment="CENTER" spacing="20.0">
+            <padding>
+                <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+            </padding>
+
+            <Label styleClass="label-titulo" text="MONTAR COMBO / KIT" />
+
+            <VBox maxWidth="700" spacing="15.0" styleClass="card-form">
+                <padding>
+                    <Insets bottom="20.0" left="25.0" right="25.0" top="20.0" />
+                </padding>
+
+                <GridPane hgap="15" vgap="10">
+                    <Label text="Nome do Combo:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="txtNomeCombo" promptText="Ex: Combo Red Label + 5 Gelos + 2 Energ." GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="400" />
+
+                    <Label text="Preço de Venda (R$):" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="txtPrecoCombo" promptText="Ex: 180.00" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="150" />
+                </GridPane>
+
+                <Separator opacity="0.3" />
+
+                <Label text="Itens do Combo (Receita do Kit)" style="-fx-font-weight: bold; -fx-text-fill: #00d2ff;" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="cbProduto" promptText="Selecione o Produto..." prefWidth="250" />
+                    <TextField fx:id="txtQuantidade" promptText="Qtd (Ex: 5)" prefWidth="90" />
+
+                    <Button onAction="#adicionarItem" text="➕ Incluir Item" styleClass="button-salvar" style="-fx-padding: 8 15; -fx-font-size: 13px;" />
+                </HBox>
+
+                <TableView fx:id="tabelaItens" prefHeight="150">
+                    <columns>
+                        <TableColumn fx:id="colNomeItem" text="Produto" prefWidth="300" />
+                        <TableColumn fx:id="colQtdItem" text="Quantidade" prefWidth="100" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <Button onAction="#salvarCombo" styleClass="button-salvar" text="💾 FINALIZAR E SALVAR COMBO" />
+        </VBox>
+    </children>
+</StackPane>

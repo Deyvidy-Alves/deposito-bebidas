@@ -1,61 +1,154 @@
-/* Fundo principal estilo Dark Modern */
+/* --- FONTE E FUNDO GERAL --- */
 .root {
-    -fx-background-color: #1a1a1a;
-    -fx-font-family: "Segoe UI Semibold", "System";
+    -fx-background-color: #1a1a1a; /* Fundo BEM escuro */
+    /* Fonte moderna padrão do Windows, se não tiver, usa as outras */
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
 }
 
-/* Card central com borda neon suave */
-.card-form {
-    -fx-background-color: #262626;
-    -fx-background-radius: 20;
-    -fx-border-color: #3d3d3d;
-    -fx-border-radius: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0, 0, 10);
-}
-
-/* Labels com cor vibrante */
+/* --- Labels e Títulos --- */
 .label {
-    -fx-text-fill: #e0e0e0;
-    -fx-font-size: 13px;
+    -fx-text-fill: #e0e0e0; /* Texto quase branco para leitura fácil */
 }
 
 .label-titulo {
     -fx-text-fill: #00d2ff; /* Azul Neon */
-    -fx-font-size: 28px;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-letter-spacing: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0,210,255,0.3), 10, 0, 0, 0);
 }
 
-/* Campos de entrada estilo futurista */
-.text-field, .combo-box {
+/* --- CARDS (Formulários) --- */
+.card-form {
+    -fx-background-color: #262626; /* Cinza chumbo */
+    -fx-background-radius: 15;
+    -fx-border-color: #3d3d3d;
+    -fx-border-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 2, 2);
+}
+
+/* --- CAMPOS DE TEXTO E COMBOBOX --- */
+.text-field, .combo-box, .text-area {
     -fx-background-color: #333333;
     -fx-text-fill: white;
-    -fx-background-radius: 10;
+    -fx-prompt-text-fill: #888888;
+    -fx-background-radius: 8;
     -fx-border-color: #444444;
-    -fx-border-radius: 10;
-    -fx-padding: 10;
-    -fx-prompt-text-fill: #777777;
+    -fx-border-radius: 8;
+    -fx-padding: 8;
 }
 
-.text-field:focused {
+.text-field:focused, .combo-box:focused, .text-area:focused {
+    -fx-border-color: #00d2ff; /* Brilho azul ao clicar */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,210,255,0.2), 5, 0, 0, 0);
+}
+
+/* Correção do menu suspenso do ComboBox */
+.combo-box-popup .list-view {
+    -fx-background-color: #333333;
     -fx-border-color: #00d2ff;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,210,255,0.4), 10, 0, 0, 0);
 }
-
-/* Botão Concluir estilo Chamativo */
-.button-salvar {
-    -fx-background-color: linear-gradient(to right, #00d2ff, #3a7bd5);
+.combo-box-popup .list-cell {
     -fx-text-fill: white;
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-background-radius: 12;
-    -fx-padding: 15 40;
-    -fx-cursor: hand;
-    -fx-transition: 0.3s;
+}
+.combo-box-popup .list-cell:hover, .combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: #00d2ff;
+    -fx-text-fill: #1a1a1a;
 }
 
+/* --- BOTÕES --- */
+.button-salvar {
+    -fx-background-color: linear-gradient(to right, #00d2ff, #007acc);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
 .button-salvar:hover {
-    -fx-effect: dropshadow(gaussian, #00d2ff, 15, 0, 0, 0);
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, #00d2ff, 10, 0, 0, 0);
+}
+
+/* Botão de Atualizar (mais discreto) */
+.button-refresh {
+    -fx-background-color: #3d3d3d;
+    -fx-text-fill: #00d2ff;
+    -fx-border-color: #00d2ff;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+.button-refresh:hover {
+    -fx-background-color: #00d2ff;
+    -fx-text-fill: #1a1a1a;
+}
+
+/* --- TABELA (TableView) - FIM DO BRANCO --- */
+.table-view {
+    -fx-background-color: transparent; /* Fundo transparente */
+    -fx-border-color: #3d3d3d;
+}
+
+/* Cabeçalho das colunas */
+.table-view .column-header-background {
+    -fx-background-color: #262626;
+}
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: #3d3d3d;
+    -fx-border-width: 0 1 1 0;
+}
+.table-view .column-header .label {
+    -fx-text-fill: #00d2ff; /* Títulos em azul neon */
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+/* Linhas da tabela */
+.table-row-cell {
+    -fx-background-color: #262626; /* Cor das linhas com dados */
+    -fx-border-color: transparent transparent #333333 transparent;
+}
+.table-row-cell:odd {
+    -fx-background-color: #2a2a2a; /* Linhas ímpares um pouco mais claras */
+}
+.table-row-cell:selected {
+    -fx-background-color: #004e92; /* Cor ao selecionar uma linha */
+}
+.table-cell {
+    -fx-text-fill: white; /* Cor do texto dos dados */
+    -fx-alignment: center-left;
+}
+
+/* Área vazia da tabela (o quadrado branco gigante) */
+.table-view .placeholder .label {
+    -fx-text-fill: #888888; /* Texto "Não há conteúdo" */
+}
+
+/* --- MENU SUPERIOR (TabPane) --- */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #1a1a1a; /* Fundo da barra superior */
+}
+
+.tab {
+    -fx-background-color: #333333; /* Cor do botão inativo */
+    -fx-background-insets: 0 2 0 0;
+    -fx-background-radius: 5 5 0 0; /* Arredonda só em cima */
+    -fx-padding: 8 15;
+    -fx-cursor: hand;
+}
+
+.tab:selected {
+    -fx-background-color: #262626; /* Cor do botão ativo */
+    -fx-border-color: #00d2ff;
+    -fx-border-width: 0 0 3 0; /* Linha neon embaixo */
+}
+
+.tab .tab-label {
+    -fx-text-fill: #aaaaaa; /* Texto inativo */
+    -fx-font-weight: bold;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: #00d2ff; /* Texto ativo neon */
+    -fx-effect: dropshadow(gaussian, rgba(0,210,255,0.5), 5, 0, 0, 0);
 }
