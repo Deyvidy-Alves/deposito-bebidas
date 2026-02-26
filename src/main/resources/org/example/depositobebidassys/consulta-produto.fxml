@@ -27,12 +27,15 @@
         </columns>
     </TableView>
 
-    <HBox spacing="10" alignment="CENTER_RIGHT">
-        <Button text="✏️ EDITAR SELECIONADO" onAction="#prepararEdicao"
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Label fx:id="lblStatus" text="" style="-fx-text-fill: #00d2ff; -fx-font-weight: bold;" />
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button text="✏️ EDITAR" onAction="#prepararEdicao"
                 style="-fx-background-color: #f1c40f; -fx-text-fill: black; -fx-font-weight: bold;" />
 
-        <Button text="🗑️ EXCLUIR ITEM" onAction="#deletarProduto"
-                style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;" />
+        <Button text="🗑️ EXCLUIR EM LOTE" onAction="#deletarEmLote"
+                style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
     </HBox>
-
 </VBox>

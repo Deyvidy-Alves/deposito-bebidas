@@ -157,3 +157,26 @@
     -fx-text-fill: #00d2ff; /* Texto ativo neon */
     -fx-effect: dropshadow(gaussian, rgba(0,210,255,0.5), 5, 0, 0, 0);
 }
+
+/* --- NOTIFICAÇÕES TOAST (Não bloqueantes) --- */
+.label-status {
+    -fx-text-fill: #00d2ff;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-color: rgba(0, 210, 255, 0.1);
+    -fx-padding: 5 15;
+    -fx-background-radius: 20;
+    -fx-opacity: 0; /* Começa invisível */
+}
+
+.button-excluir-lote {
+    -fx-background-color: #cf6679;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+.button-excluir-lote:hover {
+    -fx-background-color: #ff4d6d;
+    -fx-effect: dropshadow(gaussian, #cf6679, 10, 0, 0, 0);
+}

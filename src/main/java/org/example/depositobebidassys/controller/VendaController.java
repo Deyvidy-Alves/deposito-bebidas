@@ -10,6 +10,7 @@ import org.example.depositobebidassys.dao.ProdutoDAO;
 import org.example.depositobebidassys.dao.VendaDAO;
 import org.example.depositobebidassys.model.ItemCarrinho;
 import org.example.depositobebidassys.model.Produto;
+import org.example.depositobebidassys.model.TipoItem;
 
 import java.util.List;
 
@@ -52,25 +53,35 @@ public class VendaController {
         Produto produtoSelecionado = cbProdutoVenda.getValue();
         String qtdTexto = txtQtdVenda.getText();
 
-        if (produtoSelecionado == null || qtdTexto == null || qtdTexto.isEmpty()) {
-            mostrarAlerta("Atenção", "Selecione um produto e digite a quantidade!", Alert.AlertType.WARNING);
+        if (produtoSelecionado == null || qtdTexto.isEmpty()) {
+            mostrarAlerta("Atenção", "Selecione um produto!", Alert.AlertType.WARNING);
             return;
         }
 
         try {
-            int qtd = Integer.parseInt(qtdTexto);
+            int qtdPedida = Integer.parseInt(qtdTexto);
 
-            ItemCarrinho item = new ItemCarrinho(produtoSelecionado, qtd);
+            // VALIDAÇÃO DE ESTOQUE (Regra de Negócio)
+            if (produtoSelecionado.getTipoItem() == TipoItem.PRODUTO) {
+                if (produtoSelecionado.getEstoqueAtual() < qtdPedida) {
+                    mostrarAlerta("Estoque Insuficiente",
+                            "Você só tem " + produtoSelecionado.getEstoqueAtual() + " unidades de " + produtoSelecionado.getNome(),
+                            Alert.AlertType.ERROR);
+                    return;
+                }
+            }
+            // Se for COMBO, a validação ideal seria checar os ingredientes,
+            // mas por enquanto, validar a unidade já evita o erro que você viu.
+
+            ItemCarrinho item = new ItemCarrinho(produtoSelecionado, qtdPedida);
             listaCarrinho.add(item);
 
             totalCompra += item.getSubtotal();
             lblTotalVenda.setText(String.format("R$ %.2f", totalCompra));
 
-            cbProdutoVenda.getSelectionModel().clearSelection();
             txtQtdVenda.clear();
-
         } catch (NumberFormatException e) {
-            mostrarAlerta("Erro", "A quantidade deve ser um número inteiro.", Alert.AlertType.ERROR);
+            mostrarAlerta("Erro", "Quantidade inválida!", Alert.AlertType.ERROR);
         }
     }
 
