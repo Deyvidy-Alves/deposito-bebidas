@@ -6,37 +6,34 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.chart.AreaChart;
-import javafx.scene.chart.PieChart;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Duration;
 import org.example.depositobebidassys.dao.RelatorioDAO;
+import org.example.depositobebidassys.dao.VendaDAO;
+import org.example.depositobebidassys.service.PDFService;
 
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RelatorioController {
 
-    @FXML private DatePicker dpInicio;
-    @FXML private DatePicker dpFim;
-    @FXML private Label lblFaturamento;
-    @FXML private Label lblLucro;
-    @FXML private Label lblQtdVendas;
-    @FXML private Label lblTicketMedio;
+    @FXML private DatePicker dpInicio, dpFim;
+    @FXML private Label lblFaturamento, lblLucro, lblQtdVendas, lblTicketMedio, lblTotalFiltrado;
+    @FXML private ComboBox<String> cbFiltroMetodo;
     @FXML private AreaChart<String, Number> graficoEvolucao;
     @FXML private PieChart graficoTopProdutos;
 
-    // Novos campos da Tabela
     @FXML private TableView<VendaHistorico> tabelaHistorico;
-    @FXML private TableColumn<VendaHistorico, String> colDataHora;
+    @FXML private TableColumn<VendaHistorico, String> colDataHora, colMetodo, colDescricao; // Nova Coluna
     @FXML private TableColumn<VendaHistorico, Integer> colIdVenda;
-    @FXML private TableColumn<VendaHistorico, Double> colValorTotal;
-    @FXML private TableColumn<VendaHistorico, Double> colLucro;
+    @FXML private TableColumn<VendaHistorico, Double> colValorTotal, colLucro;
 
     private RelatorioDAO dao = new RelatorioDAO();
+    private List<VendaHistorico> listaOriginal;
     private Timeline autoUpdater;
 
     @FXML
@@ -44,24 +41,64 @@ public class RelatorioController {
         dpFim.setValue(LocalDate.now());
         dpInicio.setValue(LocalDate.now().minusDays(7));
 
-        // Configura as colunas da tabela de histórico
+        cbFiltroMetodo.setItems(FXCollections.observableArrayList("Todos", "Dinheiro", "PIX", "Cartão Débito", "Cartão Crédito"));
+        cbFiltroMetodo.setValue("Todos");
+
         colDataHora.setCellValueFactory(new PropertyValueFactory<>("dataHora"));
         colIdVenda.setCellValueFactory(new PropertyValueFactory<>("idVenda"));
+        colMetodo.setCellValueFactory(new PropertyValueFactory<>("metodoPagamento"));
+        colDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao")); // Mapeamento
         colValorTotal.setCellValueFactory(new PropertyValueFactory<>("valorTotal"));
         colLucro.setCellValueFactory(new PropertyValueFactory<>("lucro"));
 
         filtrarDados();
 
-        // A MÁGICA DO TEMPO REAL: Atualiza a tela a cada 5 segundos em background
         autoUpdater = new Timeline(new KeyFrame(Duration.seconds(5), e -> filtrarDados()));
         autoUpdater.setCycleCount(Timeline.INDEFINITE);
         autoUpdater.play();
     }
 
     @FXML
-    public void filtrarDadosForcado(ActionEvent event) {
-        filtrarDados(); // Chamado pelo botão manual
+    public void aplicarFiltroMetodo(ActionEvent event) {
+        if (listaOriginal == null) return;
+        String selecionado = cbFiltroMetodo.getValue();
+        List<VendaHistorico> filtrada = (selecionado == null || selecionado.equals("Todos")) ? listaOriginal :
+                listaOriginal.stream().filter(v -> v.getMetodoPagamento().equals(selecionado)).collect(Collectors.toList());
+
+        tabelaHistorico.setItems(FXCollections.observableArrayList(filtrada));
+        double soma = filtrada.stream().mapToDouble(VendaHistorico::getValorTotal).sum();
+        lblTotalFiltrado.setText(String.format("Total: R$ %.2f", soma));
     }
+
+    @FXML
+    public void realizarEstorno(ActionEvent event) {
+        VendaHistorico selecionada = tabelaHistorico.getSelectionModel().getSelectedItem();
+        if (selecionada == null) return;
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Deseja estornar a venda " + selecionada.getIdVenda() + "?");
+        confirm.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+
+        if (confirm.showAndWait().get() == ButtonType.OK) {
+            if (new VendaDAO().estornarVenda(selecionada.getIdVenda())) {
+                filtrarDados();
+            }
+        }
+    }
+
+    @FXML
+    public void exportarRelatorioPDF(ActionEvent event) {
+        new PDFService().gerarRelatorioVendas(
+                tabelaHistorico.getItems(),
+                lblFaturamento.getText(),
+                lblLucro.getText()
+        );
+
+        Alert info = new Alert(Alert.AlertType.INFORMATION, "PDF gerado com sucesso em Documentos/PDFsDeposito!");
+        info.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+        info.show();
+    }
+
+    @FXML public void filtrarDadosForcado(ActionEvent event) { filtrarDados(); }
 
     private void filtrarDados() {
         LocalDate inicio = dpInicio.getValue();
@@ -79,9 +116,8 @@ public class RelatorioController {
         atualizarGraficoLinha(inicio, fim);
         atualizarGraficoPizza(inicio, fim);
 
-        // Atualiza a tabela com as vendas recentes
-        List<VendaHistorico> historico = dao.buscarHistoricoVendas(inicio, fim);
-        tabelaHistorico.setItems(FXCollections.observableArrayList(historico));
+        listaOriginal = dao.buscarHistoricoVendas(inicio, fim);
+        aplicarFiltroMetodo(null);
     }
 
     private void atualizarGraficoLinha(LocalDate inicio, LocalDate fim) {
@@ -98,29 +134,28 @@ public class RelatorioController {
         graficoTopProdutos.getData().clear();
         ObservableList<PieChart.Data> dadosPizza = FXCollections.observableArrayList();
         Map<String, Integer> top = dao.buscarTopProdutos(inicio, fim);
+
         for (Map.Entry<String, Integer> entry : top.entrySet()) {
             dadosPizza.add(new PieChart.Data(entry.getKey() + " (" + entry.getValue() + ")", entry.getValue()));
         }
+
         graficoTopProdutos.setData(dadosPizza);
     }
 
-    // Classe interna (DTO) para popular a tabela facilmente
     public static class VendaHistorico {
-        private String dataHora;
+        private String dataHora, metodoPagamento, descricao; // Nova variável
         private int idVenda;
-        private double valorTotal;
-        private double lucro;
+        private double valorTotal, lucro;
 
-        public VendaHistorico(String dataHora, int idVenda, double valorTotal, double lucro) {
-            this.dataHora = dataHora;
-            this.idVenda = idVenda;
-            this.valorTotal = valorTotal;
-            this.lucro = lucro;
+        public VendaHistorico(String dataHora, int idVenda, double valorTotal, double lucro, String metodo, String descricao) {
+            this.dataHora = dataHora; this.idVenda = idVenda; this.valorTotal = valorTotal;
+            this.lucro = lucro; this.metodoPagamento = metodo; this.descricao = descricao;
         }
-
         public String getDataHora() { return dataHora; }
         public int getIdVenda() { return idVenda; }
         public double getValorTotal() { return valorTotal; }
         public double getLucro() { return lucro; }
+        public String getMetodoPagamento() { return metodoPagamento; }
+        public String getDescricao() { return descricao; } // Novo Getter
     }
 }

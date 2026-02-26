@@ -2,36 +2,21 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<TabPane tabClosingPolicy="UNAVAILABLE" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
-    <tabs>
-        <Tab text="🛒 Frente de Caixa">
-            <content>
-                <fx:include source="venda-pdv.fxml" />
-            </content>
-        </Tab>
+<VBox fx:id="rootPane" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.depositobebidassys.controller.MainController">
 
-        <Tab text="➕ Novo Produto">
-            <content>
-                <fx:include source="cadastro-produto.fxml" />
-            </content>
-        </Tab>
+    <HBox alignment="CENTER_RIGHT" spacing="20" styleClass="header-bar">
+        <Label text="Depósito do Neneu" style="-fx-font-size: 20px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS" />
+        <Region HBox.hgrow="ALWAYS" />
+        <ToggleButton fx:id="btnTema" text="Modo Claro" onAction="#alternarTema" styleClass="btn-tema" prefHeight="35" prefWidth="120" />
+    </HBox>
 
-        <Tab text="🍹 Montar Combo">
-            <content>
-                <fx:include source="cadastro-combo.fxml" />
-            </content>
-        </Tab>
-
-        <Tab text="📦 Consultar Estoque">
-            <content>
-                <fx:include source="consulta-produto.fxml" />
-            </content>
-        </Tab>
-
-        <Tab text="📊 Financeiro">
-            <content>
-                <fx:include source="relatorio-view.fxml" />
-            </content>
-        </Tab>
-    </tabs>
-</TabPane>
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <tabs>
+            <Tab text="🛒 Frente de Caixa"><content><fx:include source="venda-pdv.fxml" /></content></Tab>
+            <Tab text="➕ Novo Produto"><content><fx:include source="cadastro-produto.fxml" /></content></Tab>
+            <Tab text="🍹 Montar Combo"><content><fx:include source="cadastro-combo.fxml" /></content></Tab>
+            <Tab text="📦 Consultar Estoque"><content><fx:include source="consulta-produto.fxml" /></content></Tab>
+            <Tab text="📊 Financeiro"><content><fx:include source="relatorio-view.fxml" /></content></Tab>
+        </tabs>
+    </TabPane>
+</VBox>

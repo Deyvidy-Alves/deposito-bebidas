@@ -5,13 +5,12 @@
 
 <StackPane stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.depositobebidassys.controller.ProdutoController">
     <children>
-        <VBox alignment="CENTER" spacing="30.0" maxWidth="800">
-            <padding><Insets bottom="40.0" left="40.0" right="40.0" top="40.0" /></padding>
+        <VBox alignment="CENTER" spacing="30.0" maxWidth="1000"> <padding><Insets bottom="40.0" left="40.0" right="40.0" top="40.0" /></padding>
 
             <Label styleClass="label-titulo" text="CADASTRAR NOVO PRODUTO" />
 
-            <VBox spacing="25.0" styleClass="card-form" VBox.vgrow="ALWAYS">
-                <padding><Insets bottom="40.0" left="40.0" right="40.0" top="40.0" /></padding>
+            <VBox spacing="30.0" styleClass="card-form" VBox.vgrow="ALWAYS">
+                <padding><Insets bottom="50.0" left="50.0" right="50.0" top="50.0" /></padding>
 
                 <GridPane hgap="40" vgap="30">
                     <columnConstraints>
@@ -21,44 +20,41 @@
 
                     <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <Label text="Nome da Bebida" style="-fx-font-weight: bold;"/>
-                        <TextField fx:id="txtNome" promptText="Ex: Skol, Coca-Cola, Red Label" />
+                        <TextField fx:id="txtNome" promptText="Ex: Skol, Coca-Cola, Red Label" prefHeight="45"/>
                     </VBox>
-
                     <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <Label text="Volume / Embalagem" style="-fx-font-weight: bold;"/>
-                        <ComboBox fx:id="cbVolume" maxWidth="Infinity" promptText="Selecione..." />
+                        <ComboBox fx:id="cbVolume" maxWidth="Infinity" promptText="Selecione..." prefHeight="45"/>
                     </VBox>
 
                     <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="1">
                         <Label text="Categoria" style="-fx-font-weight: bold;"/>
-                        <ComboBox fx:id="cbCategoria" maxWidth="Infinity" promptText="Selecione..." />
+                        <ComboBox fx:id="cbCategoria" maxWidth="Infinity" promptText="Selecione..." prefHeight="45"/>
                     </VBox>
-
-                    <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                    <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="1">
                         <Label text="Código de Barras" style="-fx-font-weight: bold;"/>
-                        <TextField fx:id="txtCodigoBarras" promptText="Bipe o produto aqui" />
+                        <TextField fx:id="txtCodigoBarras" promptText="Bipe o produto aqui" prefHeight="45"/>
                     </VBox>
 
-                    <HBox spacing="20" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <HBox spacing="20" GridPane.columnIndex="0" GridPane.rowIndex="2">
                         <VBox spacing="10" HBox.hgrow="ALWAYS">
                             <Label text="Preço Custo (R$)" style="-fx-font-weight: bold;"/>
-                            <TextField fx:id="txtPrecoCusto" promptText="0.00" />
+                            <TextField fx:id="txtPrecoCusto" promptText="0.00" prefHeight="45"/>
                         </VBox>
                         <VBox spacing="10" HBox.hgrow="ALWAYS">
                             <Label text="Preço Venda (R$)" style="-fx-font-weight: bold;"/>
-                            <TextField fx:id="txtPrecoVenda" promptText="0.00" />
+                            <TextField fx:id="txtPrecoVenda" promptText="0.00" prefHeight="45"/>
                         </VBox>
                     </HBox>
-
                     <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
                         <Label text="Estoque Inicial" style="-fx-font-weight: bold;"/>
-                        <TextField fx:id="txtEstoque" promptText="Qtd em estoque" />
+                        <TextField fx:id="txtEstoque" promptText="Qtd em estoque" prefHeight="45"/>
                     </VBox>
                 </GridPane>
 
                 <Region VBox.vgrow="ALWAYS" />
                 <HBox alignment="CENTER">
-                    <Button onAction="#onSalvar" styleClass="button-salvar" text="FINALIZAR CADASTRO" prefWidth="350" prefHeight="50" style="-fx-font-size: 16px;" />
+                    <Button onAction="#onSalvar" styleClass="button-salvar" text="FINALIZAR CADASTRO" prefWidth="400" prefHeight="55" style="-fx-font-size: 18px;" />
                 </HBox>
             </VBox>
         </VBox>

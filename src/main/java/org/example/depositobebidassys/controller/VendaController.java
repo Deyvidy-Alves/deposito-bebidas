@@ -13,23 +13,29 @@ import org.example.depositobebidassys.model.Produto;
 import org.example.depositobebidassys.model.TipoItem;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class VendaController {
 
+    @FXML private TextField txtBuscaProduto;
     @FXML private ComboBox<Produto> cbProdutoVenda;
+    @FXML private ComboBox<String> cbMetodoPagamento;
     @FXML private TextField txtQtdVenda;
+    @FXML private Label lblTotalVenda;
 
     @FXML private TableView<ItemCarrinho> tabelaCarrinho;
     @FXML private TableColumn<ItemCarrinho, String> colNomeCarrinho;
     @FXML private TableColumn<ItemCarrinho, Integer> colQtdCarrinho;
     @FXML private TableColumn<ItemCarrinho, Double> colPrecoCarrinho;
     @FXML private TableColumn<ItemCarrinho, Double> colSubtotalCarrinho;
-    @FXML private Label lblTotalVenda;
-    private double descontoTotal = 0.0;
 
+    private double descontoTotal = 0.0;
+    private double totalCompra = 0.0;
     private ProdutoDAO dao = new ProdutoDAO();
     private ObservableList<ItemCarrinho> listaCarrinho = FXCollections.observableArrayList();
-    private double totalCompra = 0.0;
+
+    // 👇 AQUI ESTAVA O ERRO: FALTAVA DECLARAR ESTA VARIÁVEL NO TOPO 👇
+    private List<Produto> listaTodosProdutos;
 
     @FXML
     public void initialize() {
@@ -37,138 +43,141 @@ public class VendaController {
         colQtdCarrinho.setCellValueFactory(new PropertyValueFactory<>("quantidade"));
         colPrecoCarrinho.setCellValueFactory(new PropertyValueFactory<>("precoUnitario"));
         colSubtotalCarrinho.setCellValueFactory(new PropertyValueFactory<>("subtotal"));
-
         tabelaCarrinho.setItems(listaCarrinho);
 
-        atualizarListaProdutos();
-        cbProdutoVenda.setOnShowing(event -> atualizarListaProdutos());
+        cbMetodoPagamento.setItems(FXCollections.observableArrayList("Dinheiro", "PIX", "Cartão Débito", "Cartão Crédito"));
+        cbMetodoPagamento.setValue("Dinheiro");
+
+        carregarProdutos();
+
+        // Filtro via Texto (TextField)
+        txtBuscaProduto.textProperty().addListener((obs, antigo, novo) -> {
+            filtrarProdutos(novo);
+            if (novo != null && !novo.isEmpty() && !cbProdutoVenda.getItems().isEmpty()) {
+                cbProdutoVenda.show();
+            }
+        });
     }
 
-    private void atualizarListaProdutos() {
-        List<Produto> listaDeProdutos = dao.listarTodos();
-        cbProdutoVenda.setItems(FXCollections.observableArrayList(listaDeProdutos));
+    private void carregarProdutos() {
+        listaTodosProdutos = dao.listarTodos(); // Agora a variável existe!
+        cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+    }
+
+    private void filtrarProdutos(String termo) {
+        if (termo == null || termo.isEmpty()) {
+            cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+        } else {
+            String busca = termo.toLowerCase();
+            List<Produto> filtrados = listaTodosProdutos.stream()
+                    .filter(p -> p.getNome().toLowerCase().contains(busca) ||
+                            p.getCategoria().toLowerCase().contains(busca))
+                    .collect(Collectors.toList());
+            cbProdutoVenda.setItems(FXCollections.observableArrayList(filtrados));
+        }
+    }
+
+    @FXML
+    private void filtrarPorBotao(ActionEvent event) {
+        Button btn = (Button) event.getSource();
+        String categoria = btn.getText();
+        txtBuscaProduto.clear();
+
+        if (categoria.equals("TODOS")) {
+            cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+        } else if (categoria.equals("COMBO")) {
+            cbProdutoVenda.setItems(FXCollections.observableArrayList(
+                    listaTodosProdutos.stream().filter(p -> p.getTipoItem() == TipoItem.COMBO).collect(Collectors.toList())));
+        } else {
+            cbProdutoVenda.setItems(FXCollections.observableArrayList(
+                    listaTodosProdutos.stream().filter(p -> p.getCategoria().equalsIgnoreCase(categoria)).collect(Collectors.toList())));
+        }
+        cbProdutoVenda.show();
     }
 
     @FXML
     public void adicionarAoCarrinho(ActionEvent event) {
-        Produto produtoSelecionado = cbProdutoVenda.getValue();
-        String qtdTexto = txtQtdVenda.getText();
-
-        if (produtoSelecionado == null || qtdTexto.isEmpty()) {
-            mostrarAlerta("Atenção", "Selecione um produto!", Alert.AlertType.WARNING);
-            return;
-        }
+        Produto p = cbProdutoVenda.getValue();
+        if (p == null || txtQtdVenda.getText().isEmpty()) return;
 
         try {
-            int qtdPedida = Integer.parseInt(qtdTexto);
-
-            if (produtoSelecionado.getTipoItem() == TipoItem.PRODUTO) {
-                if (produtoSelecionado.getEstoqueAtual() < qtdPedida) {
-                    mostrarAlerta("Estoque Insuficiente",
-                            "Você só tem " + produtoSelecionado.getEstoqueAtual() + " unidades de " + produtoSelecionado.getNome(),
-                            Alert.AlertType.ERROR);
-                    return;
-                }
+            int qtd = Integer.parseInt(txtQtdVenda.getText());
+            if (p.getTipoItem() == TipoItem.PRODUTO && p.getEstoqueAtual() < qtd) {
+                mostrarAlerta("Erro", "Estoque insuficiente!");
+                return;
             }
-
-            ItemCarrinho item = new ItemCarrinho(produtoSelecionado, qtdPedida);
-            listaCarrinho.add(item);
-
-            totalCompra += item.getSubtotal();
-            lblTotalVenda.setText(String.format("R$ %.2f", totalCompra));
-
-            txtQtdVenda.clear();
+            listaCarrinho.add(new ItemCarrinho(p, qtd));
+            totalCompra += p.getPrecoVenda() * qtd;
+            atualizarTotalFinal();
+            txtQtdVenda.setText("1");
         } catch (NumberFormatException e) {
-            mostrarAlerta("Erro", "Quantidade inválida!", Alert.AlertType.ERROR);
+            mostrarAlerta("Erro", "Quantidade inválida!");
         }
     }
 
     @FXML
     public void finalizarVenda(ActionEvent event) {
-        if (listaCarrinho.isEmpty()) {
-            mostrarAlerta("Atenção", "O carrinho está vazio!", Alert.AlertType.WARNING);
-            return;
-        }
+        if (listaCarrinho.isEmpty()) return;
 
-        // --- NOVO: Lógica Matemática do Lucro ---
-        double lucroLiquidoTotal = 0.0;
+        double lucroBruto = 0.0;
         for (ItemCarrinho item : listaCarrinho) {
-            double custoUnidade = item.getProduto().getPrecoCusto();
-            double vendaUnidade = item.getProduto().getPrecoVenda();
-
-            // Subtrai custo da venda e multiplica pela qtd de itens levados
-            lucroLiquidoTotal += (vendaUnidade - custoUnidade) * item.getQuantidade();
+            lucroBruto += (item.getProduto().getPrecoVenda() - item.getProduto().getPrecoCusto()) * item.getQuantidade();
         }
 
-        VendaDAO vendaDAO = new VendaDAO();
-        // --- NOVO: Passando o lucroLiquidoTotal para o DAO ---
-        boolean sucesso = vendaDAO.registrarVenda(listaCarrinho, totalCompra, lucroLiquidoTotal);
+        double faturamentoFinal = totalCompra - descontoTotal;
+        double lucroFinal = lucroBruto - descontoTotal;
 
-        if (sucesso) {
-            mostrarAlerta("Sucesso", "Venda finalizada! O estoque foi atualizado automaticamente.", Alert.AlertType.INFORMATION);
+        if (new VendaDAO().registrarVenda(listaCarrinho, faturamentoFinal, lucroFinal, cbMetodoPagamento.getValue())) {
+            mostrarAlerta("Sucesso", "Venda finalizada!");
             listaCarrinho.clear();
-            totalCompra = 0.0;
-            lblTotalVenda.setText("R$ 0,00");
-        } else {
-            mostrarAlerta("Erro", "Ocorreu um erro ao registrar a venda. Veja o terminal.", Alert.AlertType.ERROR);
+            totalCompra = 0;
+            descontoTotal = 0;
+            atualizarTotalFinal();
         }
     }
 
     @FXML
     public void removerDoCarrinho(ActionEvent event) {
-        ItemCarrinho itemSelecionado = tabelaCarrinho.getSelectionModel().getSelectedItem();
-
-        if (itemSelecionado == null) {
-            mostrarAlerta("Atenção", "Selecione um item na tabela para remover!", Alert.AlertType.WARNING);
-            return;
+        ItemCarrinho selecionado = tabelaCarrinho.getSelectionModel().getSelectedItem();
+        if (selecionado != null) {
+            listaCarrinho.remove(selecionado);
+            totalCompra -= selecionado.getSubtotal();
+            atualizarTotalFinal();
         }
-
-        listaCarrinho.remove(itemSelecionado);
-        totalCompra -= itemSelecionado.getSubtotal();
-        if (totalCompra < 0) totalCompra = 0;
-
-        lblTotalVenda.setText(String.format("R$ %.2f", totalCompra));
-    }
-
-    private void mostrarAlerta(String titulo, String mensagem, Alert.AlertType tipo) {
-        Alert alert = new Alert(tipo);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
     }
 
     @FXML
     public void aplicarDesconto(ActionEvent event) {
-        if (listaCarrinho.isEmpty()) {
-            mostrarAlerta("Atenção", "Adicione itens antes de dar desconto!", Alert.AlertType.WARNING);
-            return;
-        }
-
         TextInputDialog dialog = new TextInputDialog("0.00");
         dialog.setTitle("Aplicar Desconto");
-        dialog.setHeaderText("Valor do desconto (R$):");
+        dialog.setHeaderText("Valor a abater (R$):");
+
+        // 👇 A LINHA MÁGICA QUE DEIXA O FUNDO PRETO 👇
         dialog.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+        dialog.getDialogPane().getStyleClass().add("meu-dialog-dark"); // Adiciona uma classe para o CSS
 
         dialog.showAndWait().ifPresent(valor -> {
             try {
-                double desc = Double.parseDouble(valor.replace(",", "."));
-                if (desc > totalCompra) {
-                    mostrarAlerta("Erro", "Desconto não pode ser maior que a compra!", Alert.AlertType.ERROR);
-                    return;
-                }
-                descontoTotal = desc;
+                descontoTotal = Double.parseDouble(valor.replace(",", "."));
                 atualizarTotalFinal();
-            } catch (NumberFormatException e) {
-                mostrarAlerta("Erro", "Valor inválido!", Alert.AlertType.ERROR);
+            } catch (Exception e) {
+                mostrarAlerta("Erro", "Valor inválido!");
             }
         });
     }
 
-    // metodo auxiliar para recalcular a tela
     private void atualizarTotalFinal() {
-        double totalComDesconto = totalCompra - descontoTotal;
-        lblTotalVenda.setText(String.format("R$ %.2f", totalComDesconto));
+        lblTotalVenda.setText(String.format("R$ %.2f", Math.max(0, totalCompra - descontoTotal)));
     }
 
+    private void mostrarAlerta(String t, String m) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(t);
+        a.setHeaderText(null);
+        a.setContentText(m);
+        a.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+        a.getDialogPane().getStyleClass().add("meu-dialog-dark");
+
+        a.showAndWait();
+    }
 }

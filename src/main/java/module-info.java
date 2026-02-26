@@ -3,6 +3,8 @@ module org.example.depositobebidassys {
     requires javafx.fxml;
     requires java.sql;
     requires java.desktop;
+    requires kernel;
+    requires layout;
 
     // Permissão para as Telas lerem os Controllers
     opens org.example.depositobebidassys.controller to javafx.fxml;

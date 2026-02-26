@@ -9,6 +9,20 @@
     -fx-font-size: 14px;
 }
 
+/* =========================================
+   CABEÇALHO SUPERIOR (Header Bar)
+   ========================================= */
+.header-bar {
+    -fx-background-color: #111111;
+    -fx-padding: 10 20;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-color: #00d2ff;
+}
+
+.header-bar .label {
+    -fx-text-fill: #00d2ff;
+}
+
 /* --- Labels e Títulos --- */
 .label {
     -fx-text-fill: #e0e0e0;
@@ -330,3 +344,258 @@
 .dialog-pane > .button-bar > .container {
     -fx-background-color: #1a1a1a;
 }
+
+/* --- CAMPOS DE TEXTO E COMBOBOX (Dark Blindado) --- */
+.text-field, .combo-box, .text-area {
+    -fx-background-color: #333333; /* Fundo cinza escuro */
+    -fx-text-fill: white;          /* Texto branco ao digitar */
+    -fx-prompt-text-fill: #888888;  /* Texto de dica cinza */
+    -fx-background-radius: 8;
+    -fx-border-color: #444444;      /* Borda discreta */
+    -fx-border-radius: 8;
+    -fx-padding: 8;
+}
+
+.text-field:focused, .combo-box:focused, .text-area:focused {
+    -fx-border-color: #00d2ff;     /* Brilho azul neon ao clicar */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,210,255,0.2), 5, 0, 0, 0);
+}
+
+/* Garante que o fundo do campo de texto dentro do ComboBox também seja escuro */
+.combo-box > .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+}
+
+/* Remove fundo branco de contêineres de filtro (FlowPane) */
+.filter-pane {
+    -fx-background-color: transparent;
+}
+
+/* --- ESTILO PARA ALERTAS E JANELAS DE DESCONTO (Dark Mode) --- */
+.dialog-pane.meu-dialog-dark {
+    -fx-background-color: #222222; /* Fundo escuro */
+}
+
+.dialog-pane.meu-dialog-dark .label {
+    -fx-text-fill: white; /* Texto branco */
+}
+
+/* Fundo do cabeçalho da janelinha */
+.dialog-pane.meu-dialog-dark:header .header-panel {
+    -fx-background-color: #111111;
+}
+
+/* Título azul neon */
+.dialog-pane.meu-dialog-dark:header .header-panel .label {
+    -fx-text-fill: #00d2ff;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Estilo do botão OK/Cancelar na janelinha */
+.dialog-pane.meu-dialog-dark .button {
+    -fx-background-color: #00d2ff;
+    -fx-text-fill: #111111;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.dialog-pane.meu-dialog-dark .button:hover {
+    -fx-background-color: #009ac7;
+}
+
+/* =========================================
+   LIGHT MODE (Ativado pelo botão no topo)
+   ========================================= */
+
+.light-mode {
+    -fx-background-color: #f4f6f9;
+}
+.light-mode .label { -fx-text-fill: #333333; }
+.light-mode .label-titulo { -fx-text-fill: #2980b9; -fx-effect: dropshadow(gaussian, rgba(41,128,185,0.2), 5, 0, 0, 0); }
+
+.light-mode .card-form {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dcdde1;
+}
+
+.light-mode .text-field, .light-mode .combo-box, .light-mode .text-area {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #2d3436;
+    -fx-border-color: #bdc3c7;
+}
+
+.light-mode .combo-box-popup .list-view,
+.light-mode .combo-box-popup .list-view .list-cell,
+.light-mode .combo-box > .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #2d3436;
+}
+
+.light-mode .combo-box-popup .list-view .list-cell:hover,
+.light-mode .combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: #3498db;
+    -fx-text-fill: #ffffff;
+}
+
+/* =========================================
+   LIGHT MODE (Ativado pelo botão no topo)
+   ========================================= */
+
+.light-mode {
+    -fx-background-color: #f4f6f9;
+}
+.light-mode .label { -fx-text-fill: #333333; }
+.light-mode .label-titulo { -fx-text-fill: #2980b9; -fx-effect: dropshadow(gaussian, rgba(41,128,185,0.2), 5, 0, 0, 0); }
+
+.light-mode .card-form {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dcdde1;
+}
+
+.light-mode .text-field, .light-mode .combo-box, .light-mode .text-area {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #2d3436;
+    -fx-border-color: #bdc3c7;
+}
+
+.light-mode .combo-box-popup .list-view,
+.light-mode .combo-box-popup .list-view .list-cell,
+.light-mode .combo-box > .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #2d3436;
+}
+
+.light-mode .combo-box-popup .list-view .list-cell:hover,
+.light-mode .combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: #3498db;
+    -fx-text-fill: #ffffff;
+}
+
+/* ===================================================
+   👇 BUGS CORRIGIDOS (Botões, Cards e Gráficos) 👇
+   =================================================== */
+
+/* 1. Botões de Filtro (Estavam pretos no modo claro) */
+.light-mode .button-refresh {
+    -fx-background-color: #f1f2f6;
+    -fx-text-fill: #2f3640;
+    -fx-border-color: #bdc3c7;
+}
+.light-mode .button-refresh:hover {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-border-color: #3498db;
+}
+
+/* 2. Cards do Dashboard Financeiro (Estavam presos no Dark Mode) */
+.light-mode .card-kpi {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dcdde1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 2, 2);
+}
+.light-mode .titulo-kpi {
+    -fx-text-fill: #7f8c8d; /* Cinza legível para o título */
+}
+
+/* 3. Gráficos e DatePicker (Textos sumindo no fundo branco) */
+.light-mode .chart-legend-item { -fx-text-fill: #333333; }
+.light-mode .axis { -fx-tick-label-fill: #333333; }
+.light-mode .axis-tick-mark, .light-mode .axis-minor-tick-mark { -fx-stroke: #bdc3c7; }
+.light-mode .chart-vertical-grid-lines, .light-mode .chart-horizontal-grid-lines { -fx-stroke: #ecf0f1; }
+
+.light-mode .date-picker > .text-field {
+    -fx-background-color: #ffffff;
+    -fx-control-inner-background: #ffffff;
+    -fx-text-fill: #333333;
+    -fx-border-color: #bdc3c7;
+}
+.light-mode .date-picker > .arrow-button {
+    -fx-background-color: #ecf0f1;
+    -fx-border-color: #bdc3c7;
+}
+.light-mode .date-picker > .arrow-button > .arrow {
+    -fx-background-color: #2980b9;
+}
+
+/* ===================================================
+   👆 FIM DAS CORREÇÕES 👆
+   =================================================== */
+
+.light-mode .table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dcdde1;
+}
+
+.light-mode .table-view .column-header, .light-mode .table-view .filler {
+    -fx-background-color: #f5f6fa;
+    -fx-border-color: #3498db;
+}
+.light-mode .table-view .column-header .label { -fx-text-fill: #2f3640; }
+.light-mode .table-row-cell { -fx-border-color: #f1f2f6; }
+.light-mode .table-cell { -fx-text-fill: #2f3640; }
+
+.light-mode .tab-pane .tab-header-area .tab-header-background { -fx-background-color: #ecf0f1; }
+.light-mode .tab { -fx-background-color: #bdc3c7; }
+.light-mode .tab:selected { -fx-background-color: #ffffff; -fx-border-color: #3498db; }
+.light-mode .tab .tab-label { -fx-text-fill: #2c3e50; }
+.light-mode .tab:selected .tab-label { -fx-text-fill: #2980b9; }
+
+/* Para as janelinhas de alerta ficarem brancas */
+.light-mode .dialog-pane.meu-dialog-dark {
+    -fx-background-color: #ffffff;
+}
+.light-mode .dialog-pane.meu-dialog-dark .label { -fx-text-fill: #333333; }
+.light-mode .dialog-pane.meu-dialog-dark:header .header-panel { -fx-background-color: #f5f6fa; }
+.light-mode .dialog-pane.meu-dialog-dark:header .header-panel .label { -fx-text-fill: #2980b9; }
+
+/* =========================================
+   BOTÃO DE TEMA (Header)
+   ========================================= */
+
+.btn-tema {
+    -fx-background-color: transparent;
+    -fx-border-color: #00d2ff;
+    -fx-text-fill: #00d2ff;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 5 15;
+}
+
+.btn-tema:hover {
+    -fx-background-color: #00d2ff;
+    -fx-text-fill: #1a1a1a;
+}
+
+/* Como o botão fica quando o Light Mode está ativado */
+.light-mode .btn-tema {
+    -fx-border-color: #2980b9;
+    -fx-text-fill: #2980b9;
+}
+
+.light-mode .btn-tema:hover {
+    -fx-background-color: #2980b9;
+    -fx-text-fill: #ffffff;
+}
+
+/* ===================================================
+   👇 AJUSTES DO CABEÇALHO E CARDS (Modo Claro) 👇
+   =================================================== */
+
+/* Pinta a barra superior de branco e a letra de azul */
+.light-mode .header-bar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #3498db;
+}
+.light-mode .header-bar .label {
+    -fx-text-fill: #2980b9;
+}
+
+/* Devolve a borda colorida da esquerda para cada card do Financeiro */
+.light-mode .card-faturamento { -fx-border-color: #dcdde1 #dcdde1 #dcdde1 #00d2ff; }
+.light-mode .card-lucro { -fx-border-color: #dcdde1 #dcdde1 #dcdde1 #2ecc71; }
+.light-mode .card-vendas { -fx-border-color: #dcdde1 #dcdde1 #dcdde1 #f1c40f; }
+.light-mode .card-ticket { -fx-border-color: #dcdde1 #dcdde1 #dcdde1 #9b59b6; }

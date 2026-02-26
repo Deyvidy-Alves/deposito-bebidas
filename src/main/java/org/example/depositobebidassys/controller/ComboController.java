@@ -12,64 +12,96 @@ import org.example.depositobebidassys.model.Produto;
 import org.example.depositobebidassys.model.TipoItem;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ComboController {
 
-    // --- CAMPOS DA TELA ---
     @FXML private TextField txtNomeCombo;
     @FXML private TextField txtPrecoCombo;
+    @FXML private TextField txtBuscaItemCombo; // Novo campo de busca
     @FXML private ComboBox<Produto> cbProduto;
-    @FXML private TextField txtQuantidade;
+    @FXML private TextField txtQtdItem;
 
-    // --- TABELA ---
-    @FXML private TableView<ItemCombo> tabelaItens;
-    @FXML private TableColumn<ItemCombo, String> colNomeItem;
-    @FXML private TableColumn<ItemCombo, Integer> colQtdItem;
+    @FXML private TableView<ItemCombo> tabelaItensCombo;
+    @FXML private TableColumn<ItemCombo, String> colProduto;
+    @FXML private TableColumn<ItemCombo, Integer> colQtd;
 
     private ProdutoDAO dao = new ProdutoDAO();
+    private List<Produto> listaTodosProdutos; // Cache para busca rápida
 
     @FXML
     public void initialize() {
-        // 1. Configura a Tabela para saber ler a nossa classe ItemCombo
-        colNomeItem.setCellValueFactory(new PropertyValueFactory<>("nomeProduto"));
-        colQtdItem.setCellValueFactory(new PropertyValueFactory<>("quantidade"));
+        colProduto.setCellValueFactory(new PropertyValueFactory<>("nomeProduto"));
+        colQtd.setCellValueFactory(new PropertyValueFactory<>("quantidade"));
 
-        // 2. Carrega as bebidas na caixinha
-        atualizarListaProdutos();
-        cbProduto.setOnShowing(event -> atualizarListaProdutos());
+        carregarProdutos();
+
+        // Lógica de busca em tempo real para a composição do combo
+        txtBuscaItemCombo.textProperty().addListener((obs, antigo, novo) -> {
+            filtrarProdutosCombo(novo);
+            if (novo != null && !novo.isEmpty() && !cbProduto.getItems().isEmpty()) {
+                cbProduto.show();
+            }
+        });
     }
 
-    private void atualizarListaProdutos() {
-        List<Produto> listaDeProdutos = dao.listarTodos();
-        ObservableList<Produto> produtosParaTela = FXCollections.observableArrayList(listaDeProdutos);
-        cbProduto.setItems(produtosParaTela);
+    private void carregarProdutos() {
+        listaTodosProdutos = dao.listarTodos();
+        cbProduto.setItems(FXCollections.observableArrayList(listaTodosProdutos));
     }
 
-    // 👇 AQUI ESTÁ A LÓGICA DO BOTÃO + INCLUIR ITEM 👇
+    private void filtrarProdutosCombo(String termo) {
+        if (termo == null || termo.isEmpty()) {
+            cbProduto.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+        } else {
+            String busca = termo.toLowerCase();
+            List<Produto> filtrados = listaTodosProdutos.stream()
+                    .filter(p -> p.getNome().toLowerCase().contains(busca) ||
+                            p.getCategoria().toLowerCase().contains(busca))
+                    .collect(Collectors.toList());
+            cbProduto.setItems(FXCollections.observableArrayList(filtrados));
+        }
+    }
+
     @FXML
-    public void adicionarItem(ActionEvent event) {
-        Produto produtoSelecionado = cbProduto.getValue();
-        String qtdTexto = txtQuantidade.getText();
+    private void filtrarComboPorBotao(ActionEvent event) {
+        Button btn = (Button) event.getSource();
+        String categoria = btn.getText();
+        txtBuscaItemCombo.clear(); // Limpa a barra de pesquisa
 
-        // Verifica se ele esqueceu de preencher algo
-        if (produtoSelecionado == null || qtdTexto == null || qtdTexto.isEmpty()) {
-            mostrarAlerta("Atenção", "Selecione um produto e digite a quantidade!", Alert.AlertType.WARNING);
+        if (categoria.equals("TODOS")) {
+            cbProduto.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+        } else {
+            // Filtra comparando exatamente com a categoria do Produto
+            cbProduto.setItems(FXCollections.observableArrayList(
+                    listaTodosProdutos.stream()
+                            .filter(p -> p.getCategoria().equalsIgnoreCase(categoria))
+                            .collect(Collectors.toList())
+            ));
+        }
+        cbProduto.show();
+    }
+
+    @FXML
+    public void adicionarItemReceita(ActionEvent event) {
+        Produto produtoSelecionado = cbProduto.getValue();
+        String qtdTexto = txtQtdItem.getText();
+
+        if (produtoSelecionado == null || qtdTexto.isEmpty()) {
+            mostrarAlerta("Atenção", "Selecione um produto e a quantidade!", Alert.AlertType.WARNING);
             return;
         }
 
         try {
             int qtd = Integer.parseInt(qtdTexto);
-
-            // Cria o item da receita e joga dentro da tabela
             ItemCombo novoItem = new ItemCombo(produtoSelecionado, qtd);
-            tabelaItens.getItems().add(novoItem);
+            tabelaItensCombo.getItems().add(novoItem);
 
-            // Limpa a caixinha e a quantidade para ele adicionar o próximo item do combo
             cbProduto.getSelectionModel().clearSelection();
-            txtQuantidade.clear();
-
+            txtQtdItem.clear();
+            txtBuscaItemCombo.clear();
         } catch (NumberFormatException e) {
-            mostrarAlerta("Erro", "A quantidade deve ser um número inteiro (Ex: 1, 2, 5).", Alert.AlertType.ERROR);
+            mostrarAlerta("Erro", "Quantidade inválida!", Alert.AlertType.ERROR);
         }
     }
 
@@ -77,43 +109,39 @@ public class ComboController {
     public void salvarCombo(ActionEvent event) {
         String nome = txtNomeCombo.getText();
         String precoStr = txtPrecoCombo.getText();
+        List<ItemCombo> itensReceita = tabelaItensCombo.getItems();
 
-        // Pega tudo que você adicionou na tabelinha de baixo
-        List<ItemCombo> itensReceita = tabelaItens.getItems();
-
-        // Validação de segurança
         if (nome.isEmpty() || precoStr.isEmpty() || itensReceita.isEmpty()) {
-            mostrarAlerta("Atenção", "Preencha o nome, o preço e adicione pelo menos um item na receita!", Alert.AlertType.WARNING);
+            mostrarAlerta("Atenção", "Preencha todos os campos e adicione itens!", Alert.AlertType.WARNING);
             return;
         }
 
         try {
             Produto combo = new Produto();
             combo.setNome(nome);
-            // Garante que a vírgula vai virar ponto pro banco de dados não chorar
             combo.setPrecoVenda(Double.parseDouble(precoStr.replace(",", ".")));
             combo.setTipoItem(TipoItem.COMBO);
 
-            // Manda pro banco!
             dao.salvarCombo(combo, itensReceita);
 
             mostrarAlerta("Sucesso", "Combo cadastrado com sucesso!", Alert.AlertType.INFORMATION);
-
-            // Limpa a tela pro próximo combo
-            txtNomeCombo.clear();
-            txtPrecoCombo.clear();
-            tabelaItens.getItems().clear();
-
+            limparTela();
         } catch (NumberFormatException e) {
-            mostrarAlerta("Erro", "Digite um valor válido para o preço.", Alert.AlertType.ERROR);
+            mostrarAlerta("Erro", "Preço inválido!", Alert.AlertType.ERROR);
         }
     }
 
-    private void mostrarAlerta(String titulo, String mensagem, Alert.AlertType tipo) {
-        Alert alert = new Alert(tipo);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
+    private void limparTela() {
+        txtNomeCombo.clear();
+        txtPrecoCombo.clear();
+        tabelaItensCombo.getItems().clear();
+    }
+
+    private void mostrarAlerta(String t, String m, Alert.AlertType tp) {
+        Alert a = new Alert(tp);
+        a.setTitle(t);
+        a.setHeaderText(null);
+        a.setContentText(m);
+        a.showAndWait();
     }
 }

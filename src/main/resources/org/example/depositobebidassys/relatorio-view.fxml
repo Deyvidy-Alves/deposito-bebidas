@@ -10,9 +10,9 @@
     <HBox alignment="CENTER_LEFT" spacing="20">
         <Label styleClass="label-titulo" text="📊 PAINEL DE RESULTADOS" />
         <Region HBox.hgrow="ALWAYS" />
-        <Label text="Período:" style="-fx-text-fill: white;"/>
+        <Label text="Período:"/>
         <DatePicker fx:id="dpInicio" promptText="Início" prefWidth="130"/>
-        <Label text="até" style="-fx-text-fill: white;"/>
+        <Label text="até"/>
         <DatePicker fx:id="dpFim" promptText="Fim" prefWidth="130"/>
         <Button text="Filtrar" onAction="#filtrarDadosForcado" styleClass="button-refresh"/>
     </HBox>
@@ -49,13 +49,24 @@
 
             <VBox styleClass="card-form" VBox.vgrow="ALWAYS" spacing="10">
                 <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                <Label text="Histórico de Vendas" styleClass="titulo-kpi"/>
+
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="Histórico de Vendas" styleClass="titulo-kpi"/>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <ComboBox fx:id="cbFiltroMetodo" onAction="#aplicarFiltroMetodo" promptText="Filtrar Pagamento" prefWidth="180" />
+                    <Label fx:id="lblTotalFiltrado" text="Total: R$ 0,00" style="-fx-font-weight: bold; -fx-text-fill: #00d2ff;"/>
+                    <Button text="ESTORNAR" onAction="#realizarEstorno" styleClass="button-perigo" style="-fx-padding: 5 15;"/>
+                    <Button text="PDF" onAction="#exportarRelatorioPDF" styleClass="button-salvar" style="-fx-padding: 5 15;"/>
+                </HBox>
+
                 <TableView fx:id="tabelaHistorico" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="colDataHora" text="Data/Hora" prefWidth="150" resizable="false" reorderable="false" />
-                        <TableColumn fx:id="colIdVenda" text="Nº Venda" prefWidth="80" resizable="false" reorderable="false" />
-                        <TableColumn fx:id="colValorTotal" text="Total (R$)" prefWidth="120" resizable="false" reorderable="false" />
-                        <TableColumn fx:id="colLucro" text="Lucro (R$)" prefWidth="120" resizable="false" reorderable="false" />
+                        <TableColumn fx:id="colDataHora" text="Data/Hora" prefWidth="160" resizable="false" />
+                        <TableColumn fx:id="colIdVenda" text="Nº" prefWidth="60" resizable="false" />
+                        <TableColumn fx:id="colMetodo" text="Pagamento" prefWidth="120" resizable="false" />
+                        <TableColumn fx:id="colDescricao" text="Itens Vendidos" prefWidth="940" />
+                        <TableColumn fx:id="colValorTotal" text="Total (R$)" prefWidth="110" resizable="false" />
+                        <TableColumn fx:id="colLucro" text="Lucro (R$)" prefWidth="110" resizable="false" />
                     </columns>
                 </TableView>
             </VBox>

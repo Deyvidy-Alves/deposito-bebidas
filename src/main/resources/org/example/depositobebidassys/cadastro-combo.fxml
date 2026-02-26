@@ -5,45 +5,71 @@
 
 <StackPane stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.depositobebidassys.controller.ComboController">
     <children>
-        <VBox alignment="CENTER" spacing="20.0">
-            <padding>
-                <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
-            </padding>
-
+        <VBox alignment="CENTER" spacing="20.0" maxWidth="1000">
+            <padding><Insets bottom="30.0" left="30.0" right="30.0" top="30.0" /></padding>
             <Label styleClass="label-titulo" text="MONTAR COMBO / KIT" />
 
-            <VBox maxWidth="700" spacing="15.0" styleClass="card-form">
-                <padding>
-                    <Insets bottom="20.0" left="25.0" right="25.0" top="20.0" />
-                </padding>
+            <VBox styleClass="card-form" VBox.vgrow="ALWAYS" spacing="15.0">
+                <padding><Insets bottom="25.0" left="30.0" right="30.0" top="25.0" /></padding>
 
-                <GridPane hgap="15" vgap="10">
-                    <Label text="Nome do Combo:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                    <TextField fx:id="txtNomeCombo" promptText="Ex: Combo Red Label + 5 Gelos + 2 Energ." GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="400" />
-
-                    <Label text="Preço de Venda (R$):" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                    <TextField fx:id="txtPrecoCombo" promptText="Ex: 180.00" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="150" />
-                </GridPane>
-
-                <Separator opacity="0.3" />
-
-                <Label text="Itens do Combo (Receita do Kit)" style="-fx-font-weight: bold; -fx-text-fill: #00d2ff;" />
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <ComboBox fx:id="cbProduto" promptText="Selecione o Produto..." prefWidth="250" />
-                    <TextField fx:id="txtQuantidade" promptText="Qtd (Ex: 5)" prefWidth="90" />
-
-                    <Button onAction="#adicionarItem" text="➕ Incluir Item" styleClass="button-salvar" style="-fx-padding: 8 15; -fx-font-size: 13px;" />
+                <HBox spacing="20">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Nome do Combo:" />
+                        <TextField fx:id="txtNomeCombo" prefHeight="35" />
+                    </VBox>
+                    <VBox spacing="8" prefWidth="180">
+                        <Label text="Preço Venda (R$):" />
+                        <TextField fx:id="txtPrecoCombo" prefHeight="35" />
+                    </VBox>
                 </HBox>
 
-                <TableView fx:id="tabelaItens" prefHeight="150">
+                <Separator opacity="0.2" />
+
+                <VBox spacing="10">
+                    <Label text="Adicionar Itens à Receita:" style="-fx-text-fill: #00d2ff; -fx-font-weight: bold;" />
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="txtBuscaItemCombo" promptText="Pesquisar..." prefHeight="35" prefWidth="200" />
+                        <ComboBox fx:id="cbProduto" promptText="Selecione o produto..." HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="35" />
+                        <TextField fx:id="txtQtdItem" promptText="Qtd" prefWidth="70" prefHeight="35" />
+                        <Button text="INCLUIR" onAction="#adicionarItemReceita" styleClass="button-salvar" prefHeight="35" />
+                    </HBox>
+
+                    <ScrollPane fitToWidth="true" prefHeight="100" style="-fx-background-color: transparent; -fx-background: transparent;">
+                        <FlowPane hgap="5" vgap="5" styleClass="filter-pane">
+                            <Button text="TODOS" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+
+                            <Button text="CERVEJA" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="WHISKY" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="VODKA" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="CACHAÇA" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="GIN" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="VINHO E ESPUMANTE" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+
+                            <Button text="REFRIGERANTE" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="ENERGÉTICO" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="ÁGUA" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="ISOTÔNICO" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="SUCO" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+
+                            <Button text="GELO" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="GELO SABORIAZADO" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                            <Button text="OUTROS" onAction="#filtrarComboPorBotao" styleClass="button-refresh" style="-fx-font-size: 10px;" />
+                        </FlowPane>
+                    </ScrollPane>
+                </VBox>
+
+                <TableView fx:id="tabelaItensCombo" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="colNomeItem" text="Produto" prefWidth="300" />
-                        <TableColumn fx:id="colQtdItem" text="Quantidade" prefWidth="100" />
+                        <TableColumn fx:id="colProduto" text="Produto" prefWidth="550" />
+                        <TableColumn fx:id="colQtd" text="Quantidade" prefWidth="120" />
                     </columns>
                 </TableView>
-            </VBox>
 
-            <Button onAction="#salvarCombo" styleClass="button-salvar" text="💾 FINALIZAR E SALVAR COMBO" />
+                <HBox alignment="CENTER">
+                    <Button text="SALVAR COMBO" onAction="#salvarCombo" styleClass="button-salvar" prefWidth="300" prefHeight="45" />
+                </HBox>
+            </VBox>
         </VBox>
     </children>
 </StackPane>

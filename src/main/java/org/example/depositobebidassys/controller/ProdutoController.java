@@ -29,6 +29,7 @@ public class ProdutoController {
                 "Refrigerante",
                 "Água",
                 "Gelo",
+                "Gelo saboriazado",
                 "Whisky",
                 "Vodka",
                 "Cachaça",
