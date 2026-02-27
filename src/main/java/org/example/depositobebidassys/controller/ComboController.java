@@ -1,11 +1,16 @@
 package org.example.depositobebidassys.controller;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.StringConverter;
 import org.example.depositobebidassys.dao.ProdutoDAO;
 import org.example.depositobebidassys.model.ItemCombo;
 import org.example.depositobebidassys.model.Produto;
@@ -18,7 +23,7 @@ public class ComboController {
 
     @FXML private TextField txtNomeCombo;
     @FXML private TextField txtPrecoCombo;
-    @FXML private TextField txtBuscaItemCombo; // Novo campo de busca
+    @FXML private TextField txtBuscaItemCombo;
     @FXML private ComboBox<Produto> cbProduto;
     @FXML private TextField txtQtdItem;
 
@@ -27,7 +32,7 @@ public class ComboController {
     @FXML private TableColumn<ItemCombo, Integer> colQtd;
 
     private ProdutoDAO dao = new ProdutoDAO();
-    private List<Produto> listaTodosProdutos; // Cache para busca rápida
+    private List<Produto> listaTodosProdutos; // Cache pra não bater no banco toda hora
 
     @FXML
     public void initialize() {
@@ -36,7 +41,17 @@ public class ComboController {
 
         carregarProdutos();
 
-        // Lógica de busca em tempo real para a composição do combo
+        // Formata como o objeto vai aparecer escrito no ComboBox
+        cbProduto.setConverter(new StringConverter<Produto>() {
+            @Override
+            public String toString(Produto p) {
+                return p == null ? "" : p.getNome() + " (Estoque: " + p.getEstoqueAtual() + ")";
+            }
+            @Override
+            public Produto fromString(String s) { return null; }
+        });
+
+        // Listener pra filtrar a lista dinamicamente enquanto digita
         txtBuscaItemCombo.textProperty().addListener((obs, antigo, novo) -> {
             filtrarProdutosCombo(novo);
             if (novo != null && !novo.isEmpty() && !cbProduto.getItems().isEmpty()) {
@@ -46,18 +61,18 @@ public class ComboController {
     }
 
     private void carregarProdutos() {
-        listaTodosProdutos = dao.listarTodos();
-        cbProduto.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+        listaTodosProdutos = dao.listarTodos(); // Puxa dados frescos
     }
 
     private void filtrarProdutosCombo(String termo) {
+        carregarProdutos();
         if (termo == null || termo.isEmpty()) {
             cbProduto.setItems(FXCollections.observableArrayList(listaTodosProdutos));
         } else {
             String busca = termo.toLowerCase();
             List<Produto> filtrados = listaTodosProdutos.stream()
                     .filter(p -> p.getNome().toLowerCase().contains(busca) ||
-                            p.getCategoria().toLowerCase().contains(busca))
+                            (p.getCategoria() != null && p.getCategoria().toLowerCase().contains(busca))) // Proteção pro null
                     .collect(Collectors.toList());
             cbProduto.setItems(FXCollections.observableArrayList(filtrados));
         }
@@ -65,17 +80,17 @@ public class ComboController {
 
     @FXML
     private void filtrarComboPorBotao(ActionEvent event) {
+        carregarProdutos(); // Garante q a lista base ta atualizada
         Button btn = (Button) event.getSource();
         String categoria = btn.getText();
-        txtBuscaItemCombo.clear(); // Limpa a barra de pesquisa
+        txtBuscaItemCombo.clear();
 
         if (categoria.equals("TODOS")) {
             cbProduto.setItems(FXCollections.observableArrayList(listaTodosProdutos));
         } else {
-            // Filtra comparando exatamente com a categoria do Produto
             cbProduto.setItems(FXCollections.observableArrayList(
                     listaTodosProdutos.stream()
-                            .filter(p -> p.getCategoria().equalsIgnoreCase(categoria))
+                            .filter(p -> p.getCategoria() != null && p.getCategoria().equalsIgnoreCase(categoria))
                             .collect(Collectors.toList())
             ));
         }

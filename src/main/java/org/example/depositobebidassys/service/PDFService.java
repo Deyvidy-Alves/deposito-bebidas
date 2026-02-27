@@ -16,13 +16,17 @@ import java.util.List;
 public class PDFService {
     public void gerarRelatorioVendas(List<VendaHistorico> vendas, String faturamento, String lucro) {
         try {
-            // Pasta Documents/PDFsDeposito do Windows
-            File pastaRaiz = new File(System.getProperty("user.home"), "Documents/PDFsDeposito");
-            if (!pastaRaiz.exists()) pastaRaiz.mkdirs();
+            // Cria a pasta de relatórios na mesma pasta do .jar, pra não espalhar arquivo no PC do Manel
+            File pastaRelatorios = new File("./Relatorios_Gerados");
+            if (!pastaRelatorios.exists()) {
+                pastaRelatorios.mkdirs();
+            }
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String fileName = "Relatorio_Financeiro_" + timestamp + ".pdf";
-            File arquivoFinal = new File(pastaRaiz, fileName);
+
+            // Junta a pasta com o nome do arquivo pra jogar o PDF no lugar certo
+            File arquivoFinal = new File(pastaRelatorios, fileName);
 
             PdfWriter writer = new PdfWriter(arquivoFinal.getAbsolutePath());
             PdfDocument pdf = new PdfDocument(writer);
@@ -35,7 +39,7 @@ public class PDFService {
             document.add(new Paragraph("Lucro Líquido: " + lucro));
             document.add(new Paragraph("\n"));
 
-            // 6 Colunas: Aumentei o array para caber a "Descrição"
+            // Ajustando a largura das colunas pra não cortar os textos grandes
             float[] columnWidths = {100, 50, 80, 200, 70, 70};
             Table table = new Table(UnitValue.createPointArray(columnWidths));
             table.setWidth(UnitValue.createPercentValue(100));
@@ -51,7 +55,7 @@ public class PDFService {
                 table.addCell(v.getDataHora());
                 table.addCell(String.valueOf(v.getIdVenda()));
                 table.addCell(v.getMetodoPagamento());
-                // Insere a descrição ou vazio se for nulo
+                // Evita tomar NullPointerException se a descrição vier vazia
                 table.addCell(v.getDescricao() != null ? v.getDescricao() : "");
                 table.addCell(String.format("%.2f", v.getValorTotal()));
                 table.addCell(String.format("%.2f", v.getLucro()));

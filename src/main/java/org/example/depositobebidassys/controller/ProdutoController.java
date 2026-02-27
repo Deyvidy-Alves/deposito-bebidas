@@ -10,7 +10,7 @@ import org.example.depositobebidassys.model.TipoItem;
 
 public class ProdutoController {
 
-    // O @FXML "linka" a variável do Java com o campo de texto lá na tela
+    // Refs da tela
     @FXML private TextField txtNome;
     @FXML private ComboBox<String> cbCategoria;
     @FXML private TextField txtCodigoBarras;
@@ -23,7 +23,7 @@ public class ProdutoController {
     @FXML
     public void initialize() {
 
-        // Categorias padronizadas
+        // Populando categorias base
         cbCategoria.getItems().addAll(
                 "Cerveja",
                 "Refrigerante",
@@ -31,6 +31,8 @@ public class ProdutoController {
                 "Gelo",
                 "Gelo saboriazado",
                 "Whisky",
+                "Bourbon",
+                "Licor",
                 "Vodka",
                 "Cachaça",
                 "Gin",
@@ -42,7 +44,7 @@ public class ProdutoController {
         );
         cbCategoria.setPromptText("Selecione a Categoria");
 
-        // Litragens e Embalagens 100% separadas
+        // Setando os volumes pra concatenar dps
         cbVolume.getItems().addAll(
                 "Lata 269ml",
                 "Lata 350ml",
@@ -51,7 +53,8 @@ public class ProdutoController {
                 "Long Neck 355ml",
                 "Garrafa 300ml",
                 "Garrafa 600ml",
-                "Litrão 1L",
+                "Garrafa 750ml",
+                "Garrafa 1L",
                 "Garrafa 1.5L",
                 "Garrafa 2L",
                 "Pet 200ml",
@@ -71,32 +74,33 @@ public class ProdutoController {
     @FXML
     public void onSalvar() {
         try {
-            // Pega a embalagem e coloca um tracinho antes. Se estiver vazio, não põe nada.
+            // Formata a string de volume
             String embalagem = cbVolume.getValue() != null ? " - " + cbVolume.getValue() : "";
 
-            // 1. Pega os textos que o usuário digitou na tela e monta o objeto
             Produto p = new Produto();
             p.setNome(txtNome.getText() + embalagem);
             p.setCategoria(cbCategoria.getValue());
+
             String codigo = txtCodigoBarras.getText().trim();
             p.setCodigoBarras(codigo.isEmpty() ? null : codigo);
             p.setTipoItem(TipoItem.PRODUTO);
 
-            // O replace(",", ".") garante que não vai dar erro se digitar R$ 7,50 com vírgula
+            // Replace esperto pra n crashar com double
             p.setPrecoCusto(Double.parseDouble(txtPrecoCusto.getText().replace(",", ".")));
             p.setPrecoVenda(Double.parseDouble(txtPrecoVenda.getText().replace(",", ".")));
             p.setEstoqueAtual(Integer.parseInt(txtEstoque.getText()));
 
-            // 2. Chama o nosso DAO para gravar no SQLite
             ProdutoDAO dao = new ProdutoDAO();
-            dao.salvar(p);
+            boolean sucesso = dao.salvar(p);
 
-            // 3. Mostra um aviso na tela e limpa os campos para o próximo cadastro
-            mostrarAlerta("Sucesso", "Produto cadastrado com sucesso!", Alert.AlertType.INFORMATION);
-            limparCampos();
+            // UX silenciosa: limpa direto se der bom, avisa se der BO
+            if (sucesso) {
+                limparCampos();
+            } else {
+                mostrarAlerta("Erro ao Salvar", "Não foi possível cadastrar o produto no banco. Verifique se o código de barras já existe.", Alert.AlertType.ERROR);
+            }
 
         } catch (NumberFormatException e) {
-            // Se ele digitar "abc" no preço, o Try/Catch segura o erro e avisa sem o sistema "crashar"
             mostrarAlerta("Erro de Digitação", "Verifique se digitou os preços e o estoque apenas com números.", Alert.AlertType.ERROR);
         }
     }
@@ -104,7 +108,6 @@ public class ProdutoController {
     private void limparCampos() {
         txtNome.clear();
 
-        // Limpeza dos ComboBoxes
         cbCategoria.getSelectionModel().clearSelection();
         cbCategoria.setPromptText("Selecione a Categoria");
 
@@ -116,7 +119,7 @@ public class ProdutoController {
         txtPrecoVenda.clear();
         txtEstoque.clear();
 
-        // Coloca o cursor de volta no início para o próximo cadastro
+        // Volta o foco pro nome pra agilizar os próximos
         txtNome.requestFocus();
     }
 

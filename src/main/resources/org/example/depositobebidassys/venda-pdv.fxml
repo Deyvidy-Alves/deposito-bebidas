@@ -68,9 +68,9 @@
 
             <TableView fx:id="tabelaCarrinho" VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colNomeCarrinho" text="Item" prefWidth="300" />
-                    <TableColumn fx:id="colQtdCarrinho" text="Qtd" prefWidth="80" />
-                    <TableColumn fx:id="colPrecoCarrinho" text="Un." prefWidth="90" />
+                    <TableColumn fx:id="colNomeCarrinho" text="Item" prefWidth="1100" />
+                    <TableColumn fx:id="colQtdCarrinho" text="Qtd" prefWidth="100" />
+                    <TableColumn fx:id="colPrecoCarrinho" text="Un." prefWidth="100" />
                     <TableColumn fx:id="colSubtotalCarrinho" text="Subtotal" prefWidth="120" />
                 </columns>
             </TableView>

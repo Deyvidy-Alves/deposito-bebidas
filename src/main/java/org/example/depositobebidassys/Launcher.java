@@ -1,9 +1,9 @@
 package org.example.depositobebidassys;
 
-import javafx.application.Application;
-
 public class Launcher {
     public static void main(String[] args) {
-        Application.launch(HelloApplication.class, args);
+        // Esse cara aqui é o verdadeiro gatilho do sistema.
+        // Ele burla a chatice do JavaFX reclamando de "Modules" quando a gnt gera o .jar final.
+        HelloApplication.main(args);
     }
 }

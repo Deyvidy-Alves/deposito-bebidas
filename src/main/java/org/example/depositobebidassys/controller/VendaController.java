@@ -6,22 +6,22 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.StringConverter;
 import org.example.depositobebidassys.dao.ProdutoDAO;
 import org.example.depositobebidassys.dao.VendaDAO;
 import org.example.depositobebidassys.model.ItemCarrinho;
 import org.example.depositobebidassys.model.Produto;
-import org.example.depositobebidassys.model.TipoItem;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class VendaController {
 
     @FXML private TextField txtBuscaProduto;
     @FXML private ComboBox<Produto> cbProdutoVenda;
-    @FXML private ComboBox<String> cbMetodoPagamento;
     @FXML private TextField txtQtdVenda;
-    @FXML private Label lblTotalVenda;
+    @FXML private ComboBox<String> cbMetodoPagamento;
 
     @FXML private TableView<ItemCarrinho> tabelaCarrinho;
     @FXML private TableColumn<ItemCarrinho, String> colNomeCarrinho;
@@ -29,56 +29,70 @@ public class VendaController {
     @FXML private TableColumn<ItemCarrinho, Double> colPrecoCarrinho;
     @FXML private TableColumn<ItemCarrinho, Double> colSubtotalCarrinho;
 
-    private double descontoTotal = 0.0;
-    private double totalCompra = 0.0;
-    private ProdutoDAO dao = new ProdutoDAO();
-    private ObservableList<ItemCarrinho> listaCarrinho = FXCollections.observableArrayList();
+    @FXML private Label lblTotalVenda;
 
-    // 👇 AQUI ESTAVA O ERRO: FALTAVA DECLARAR ESTA VARIÁVEL NO TOPO 👇
+    // Controls e instâncias de BD
+    private ProdutoDAO dao = new ProdutoDAO();
+    private VendaDAO vendaDao = new VendaDAO();
     private List<Produto> listaTodosProdutos;
+    private ObservableList<ItemCarrinho> itensCarrinho = FXCollections.observableArrayList();
+
+    private double valorTotal = 0.0;
+    private double valorDesconto = 0.0;
+    private double custoTotal = 0.0;
 
     @FXML
     public void initialize() {
+        // Setup da grid
         colNomeCarrinho.setCellValueFactory(new PropertyValueFactory<>("nomeProduto"));
         colQtdCarrinho.setCellValueFactory(new PropertyValueFactory<>("quantidade"));
         colPrecoCarrinho.setCellValueFactory(new PropertyValueFactory<>("precoUnitario"));
         colSubtotalCarrinho.setCellValueFactory(new PropertyValueFactory<>("subtotal"));
-        tabelaCarrinho.setItems(listaCarrinho);
 
-        cbMetodoPagamento.setItems(FXCollections.observableArrayList("Dinheiro", "PIX", "Cartão Débito", "Cartão Crédito"));
-        cbMetodoPagamento.setValue("Dinheiro");
+        tabelaCarrinho.setItems(itensCarrinho);
+
+        // Opções de PG
+        cbMetodoPagamento.setItems(FXCollections.observableArrayList(
+                "Dinheiro", "PIX", "Cartão de Crédito", "Cartão de Débito", "Fiado/Marcado"
+        ));
+        cbMetodoPagamento.getSelectionModel().selectFirst();
 
         carregarProdutos();
 
-        // Filtro via Texto (TextField)
+        // Ensina o visual do combobox a extrair o nome e preço do obj
+        cbProdutoVenda.setConverter(new StringConverter<Produto>() {
+            @Override
+            public String toString(Produto p) {
+                return p == null ? "" : p.getNome() + " - R$ " + String.format("%.2f", p.getPrecoVenda()) + " (Est: " + p.getEstoqueAtual() + ")";
+            }
+            @Override
+            public Produto fromString(String s) { return null; }
+        });
+
+        // Trigger pra filtrar digitando
         txtBuscaProduto.textProperty().addListener((obs, antigo, novo) -> {
-            filtrarProdutos(novo);
-            if (novo != null && !novo.isEmpty() && !cbProdutoVenda.getItems().isEmpty()) {
-                cbProdutoVenda.show();
+            carregarProdutos();
+            if (novo == null || novo.isEmpty()) {
+                cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+            } else {
+                String busca = novo.toLowerCase();
+                List<Produto> filtrados = listaTodosProdutos.stream()
+                        .filter(p -> p.getNome().toLowerCase().contains(busca) ||
+                                (p.getCategoria() != null && p.getCategoria().toLowerCase().contains(busca)))
+                        .collect(Collectors.toList());
+                cbProdutoVenda.setItems(FXCollections.observableArrayList(filtrados));
+                if (!filtrados.isEmpty()) cbProdutoVenda.show();
             }
         });
     }
 
     private void carregarProdutos() {
-        listaTodosProdutos = dao.listarTodos(); // Agora a variável existe!
-        cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
-    }
-
-    private void filtrarProdutos(String termo) {
-        if (termo == null || termo.isEmpty()) {
-            cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
-        } else {
-            String busca = termo.toLowerCase();
-            List<Produto> filtrados = listaTodosProdutos.stream()
-                    .filter(p -> p.getNome().toLowerCase().contains(busca) ||
-                            p.getCategoria().toLowerCase().contains(busca))
-                    .collect(Collectors.toList());
-            cbProdutoVenda.setItems(FXCollections.observableArrayList(filtrados));
-        }
+        listaTodosProdutos = dao.listarTodos();
     }
 
     @FXML
     private void filtrarPorBotao(ActionEvent event) {
+        carregarProdutos(); // Traz att do banco
         Button btn = (Button) event.getSource();
         String categoria = btn.getText();
         txtBuscaProduto.clear();
@@ -87,52 +101,47 @@ public class VendaController {
             cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
         } else if (categoria.equals("COMBO")) {
             cbProdutoVenda.setItems(FXCollections.observableArrayList(
-                    listaTodosProdutos.stream().filter(p -> p.getTipoItem() == TipoItem.COMBO).collect(Collectors.toList())));
+                    listaTodosProdutos.stream()
+                            .filter(p -> p.getTipoItem() != null && p.getTipoItem().toString().equals("COMBO"))
+                            .collect(Collectors.toList())
+            ));
         } else {
             cbProdutoVenda.setItems(FXCollections.observableArrayList(
-                    listaTodosProdutos.stream().filter(p -> p.getCategoria().equalsIgnoreCase(categoria)).collect(Collectors.toList())));
+                    listaTodosProdutos.stream()
+                            .filter(p -> p.getCategoria() != null && p.getCategoria().equalsIgnoreCase(categoria))
+                            .collect(Collectors.toList())
+            ));
         }
         cbProdutoVenda.show();
     }
 
     @FXML
     public void adicionarAoCarrinho(ActionEvent event) {
-        Produto p = cbProdutoVenda.getValue();
-        if (p == null || txtQtdVenda.getText().isEmpty()) return;
+        Produto produtoSelecionado = cbProdutoVenda.getValue();
+        String qtdTexto = txtQtdVenda.getText();
+
+        if (produtoSelecionado == null || qtdTexto.isEmpty()) {
+            mostrarAlerta("Atenção", "Selecione um produto e informe a quantidade!", Alert.AlertType.WARNING);
+            return;
+        }
 
         try {
-            int qtd = Integer.parseInt(txtQtdVenda.getText());
-            if (p.getTipoItem() == TipoItem.PRODUTO && p.getEstoqueAtual() < qtd) {
-                mostrarAlerta("Erro", "Estoque insuficiente!");
-                return;
-            }
-            listaCarrinho.add(new ItemCarrinho(p, qtd));
-            totalCompra += p.getPrecoVenda() * qtd;
-            atualizarTotalFinal();
+            int qtd = Integer.parseInt(qtdTexto);
+            if (qtd <= 0) throw new NumberFormatException();
+
+            // Seta no carrinho usando o construtor do model
+            ItemCarrinho item = new ItemCarrinho(produtoSelecionado, qtd);
+            itensCarrinho.add(item);
+
+            atualizarTotais();
+
+            // Prepara a tela pro próximo bip
+            cbProdutoVenda.getSelectionModel().clearSelection();
             txtQtdVenda.setText("1");
+            txtBuscaProduto.clear();
+
         } catch (NumberFormatException e) {
-            mostrarAlerta("Erro", "Quantidade inválida!");
-        }
-    }
-
-    @FXML
-    public void finalizarVenda(ActionEvent event) {
-        if (listaCarrinho.isEmpty()) return;
-
-        double lucroBruto = 0.0;
-        for (ItemCarrinho item : listaCarrinho) {
-            lucroBruto += (item.getProduto().getPrecoVenda() - item.getProduto().getPrecoCusto()) * item.getQuantidade();
-        }
-
-        double faturamentoFinal = totalCompra - descontoTotal;
-        double lucroFinal = lucroBruto - descontoTotal;
-
-        if (new VendaDAO().registrarVenda(listaCarrinho, faturamentoFinal, lucroFinal, cbMetodoPagamento.getValue())) {
-            mostrarAlerta("Sucesso", "Venda finalizada!");
-            listaCarrinho.clear();
-            totalCompra = 0;
-            descontoTotal = 0;
-            atualizarTotalFinal();
+            mostrarAlerta("Erro", "A quantidade deve ser um número inteiro válido!", Alert.AlertType.ERROR);
         }
     }
 
@@ -140,9 +149,10 @@ public class VendaController {
     public void removerDoCarrinho(ActionEvent event) {
         ItemCarrinho selecionado = tabelaCarrinho.getSelectionModel().getSelectedItem();
         if (selecionado != null) {
-            listaCarrinho.remove(selecionado);
-            totalCompra -= selecionado.getSubtotal();
-            atualizarTotalFinal();
+            itensCarrinho.remove(selecionado);
+            atualizarTotais();
+        } else {
+            mostrarAlerta("Atenção", "Selecione um item na tabela para remover.", Alert.AlertType.WARNING);
         }
     }
 
@@ -150,34 +160,74 @@ public class VendaController {
     public void aplicarDesconto(ActionEvent event) {
         TextInputDialog dialog = new TextInputDialog("0.00");
         dialog.setTitle("Aplicar Desconto");
-        dialog.setHeaderText("Valor a abater (R$):");
+        dialog.setHeaderText("Desconto na Venda");
+        dialog.setContentText("Informe o valor do desconto em R$:");
 
-        // 👇 A LINHA MÁGICA QUE DEIXA O FUNDO PRETO 👇
         dialog.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
-        dialog.getDialogPane().getStyleClass().add("meu-dialog-dark"); // Adiciona uma classe para o CSS
 
-        dialog.showAndWait().ifPresent(valor -> {
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(valor -> {
             try {
-                descontoTotal = Double.parseDouble(valor.replace(",", "."));
-                atualizarTotalFinal();
-            } catch (Exception e) {
-                mostrarAlerta("Erro", "Valor inválido!");
+                valorDesconto = Double.parseDouble(valor.replace(",", "."));
+                atualizarTotais();
+            } catch (NumberFormatException e) {
+                mostrarAlerta("Erro", "Valor de desconto inválido!", Alert.AlertType.ERROR);
             }
         });
     }
 
-    private void atualizarTotalFinal() {
-        lblTotalVenda.setText(String.format("R$ %.2f", Math.max(0, totalCompra - descontoTotal)));
+    private void atualizarTotais() {
+        valorTotal = 0.0;
+        custoTotal = 0.0;
+
+        for (ItemCarrinho item : itensCarrinho) {
+            valorTotal += item.getSubtotal();
+            custoTotal += (item.getProduto().getPrecoCusto() * item.getQuantidade());
+        }
+
+        valorTotal -= valorDesconto;
+        if (valorTotal < 0) valorTotal = 0;
+
+        lblTotalVenda.setText(String.format("R$ %.2f", valorTotal));
     }
 
-    private void mostrarAlerta(String t, String m) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle(t);
-        a.setHeaderText(null);
-        a.setContentText(m);
-        a.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
-        a.getDialogPane().getStyleClass().add("meu-dialog-dark");
+    @FXML
+    public void finalizarVenda(ActionEvent event) {
+        if (itensCarrinho.isEmpty()) {
+            mostrarAlerta("Atenção", "O carrinho está vazio!", Alert.AlertType.WARNING);
+            return;
+        }
 
-        a.showAndWait();
+        String metodoPagamento = cbMetodoPagamento.getValue();
+        double lucroLiquido = valorTotal - custoTotal;
+
+        boolean sucesso = vendaDao.registrarVenda(itensCarrinho, valorTotal, lucroLiquido, metodoPagamento);
+
+        if (sucesso) {
+            mostrarAlerta("Sucesso", "Venda finalizada com sucesso!", Alert.AlertType.INFORMATION);
+            limparCaixa();
+        } else {
+            mostrarAlerta("Erro", "Ocorreu um erro ao registrar a venda no banco de dados.", Alert.AlertType.ERROR);
+        }
+    }
+
+    private void limparCaixa() {
+        itensCarrinho.clear();
+        txtBuscaProduto.clear();
+        cbProdutoVenda.getSelectionModel().clearSelection();
+        txtQtdVenda.setText("1");
+        cbMetodoPagamento.getSelectionModel().selectFirst();
+        valorDesconto = 0.0;
+        atualizarTotais();
+        carregarProdutos(); // Garante q a view do estoque bate com o banco post-venda
+    }
+
+    private void mostrarAlerta(String titulo, String mensagem, Alert.AlertType tipo) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
+        alert.showAndWait();
     }
 }

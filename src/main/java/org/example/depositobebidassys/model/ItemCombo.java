@@ -1,5 +1,6 @@
 package org.example.depositobebidassys.model;
 
+// Representa a "receita" doq vai dentro de um kit/combo
 public class ItemCombo {
     private Produto produto;
     private int quantidade;
@@ -17,7 +18,7 @@ public class ItemCombo {
         return quantidade;
     }
 
-    // A tabela vai procurar por esse método para preencher a coluna de "Produto"
+    // O JavaFX (PropertyValueFactory) procura exatemente por esse nome pra preencher a coluna
     public String getNomeProduto() {
         return produto.getNome();
     }

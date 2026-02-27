@@ -6,10 +6,11 @@ import java.sql.Statement;
 
 public class DatabaseBuilder {
 
+    // Essa classe não ta sendo muito usada pq joguei td pra ConnectionFactory
+    // mas deixei aqui de backup caso precise rodar um setup forçado
     public void construirTabelas() {
         ConnectionFactory factory = new ConnectionFactory();
 
-        // 1. Tabela de Produtos/Estoque
         String sqlProdutos = "CREATE TABLE IF NOT EXISTS produtos (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "nome TEXT NOT NULL, " +
@@ -20,7 +21,6 @@ public class DatabaseBuilder {
                 "preco_venda REAL NOT NULL, " +
                 "estoque_atual INTEGER DEFAULT 0)";
 
-        // 2. Tabela de Vendas (Cabeçalho)
         String sqlVendas = "CREATE TABLE IF NOT EXISTS vendas (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "data_venda DATETIME DEFAULT CURRENT_TIMESTAMP, " +
@@ -28,7 +28,6 @@ public class DatabaseBuilder {
                 "lucro_liquido REAL NOT NULL, " +
                 "forma_pagamento TEXT NOT NULL)";
 
-        // 3. Tabela de Itens da Venda (Detalhes)
         String sqlItensVenda = "CREATE TABLE IF NOT EXISTS itens_venda (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "venda_id INTEGER NOT NULL, " +
@@ -39,7 +38,6 @@ public class DatabaseBuilder {
                 "FOREIGN KEY (venda_id) REFERENCES vendas(id), " +
                 "FOREIGN KEY (produto_id) REFERENCES produtos(id))";
 
-        // 4. Tabela de Fluxo de Caixa (Sangria e Movimentações)
         String sqlFluxoCaixa = "CREATE TABLE IF NOT EXISTS fluxo_caixa (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "data_movimento DATETIME DEFAULT CURRENT_TIMESTAMP, " +
@@ -48,7 +46,6 @@ public class DatabaseBuilder {
                 "valor REAL NOT NULL, " +
                 "forma_pagamento TEXT)";
 
-        // 5. Tabela de Receitas de Combo (A união das bebidas)
         String sqlComboItens = "CREATE TABLE IF NOT EXISTS combo_itens (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "combo_id INTEGER, " +
@@ -57,7 +54,6 @@ public class DatabaseBuilder {
                 "FOREIGN KEY(combo_id) REFERENCES produtos(id), " +
                 "FOREIGN KEY(produto_id) REFERENCES produtos(id))";
 
-        // Conecta e roda os comandos SQL (O Escopo Seguro!)
         try (Connection conn = factory.recuperarConexao();
              Statement stmt = conn.createStatement()) {
 
@@ -65,12 +61,12 @@ public class DatabaseBuilder {
             stmt.execute(sqlVendas);
             stmt.execute(sqlItensVenda);
             stmt.execute(sqlFluxoCaixa);
-            stmt.execute(sqlComboItens); // <-- Agora ele está seguro aqui dentro!
+            stmt.execute(sqlComboItens);
 
-            System.out.println("✅ Banco de dados 'estoque.db' verificado e criado com sucesso!");
+            System.out.println("✅ Banco de dados 'estoque.db' verificado/criado!");
 
         } catch (SQLException e) {
-            System.err.println("❌ Erro ao construir banco de dados: " + e.getMessage());
+            System.err.println("❌ Erro ao construir db: " + e.getMessage());
         }
     }
 }

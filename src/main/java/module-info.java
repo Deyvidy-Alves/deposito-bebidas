@@ -6,15 +6,15 @@ module org.example.depositobebidassys {
     requires kernel;
     requires layout;
 
-    // Permissão para as Telas lerem os Controllers
+    // Deixa os arquivos FXML (as telas) enxergarem nossos Controllers
     opens org.example.depositobebidassys.controller to javafx.fxml;
     exports org.example.depositobebidassys.controller;
 
-    // 👇 AS DUAS LINHAS MÁGICAS PARA A TABELA FUNCIONAR 👇
+    // Isso libera o JavaFX pra conseguir ler os "getters" lá nas nossas classes de Model
     opens org.example.depositobebidassys.model to javafx.base;
     exports org.example.depositobebidassys.model;
 
-    // Permissão geral
+    // Libera o pacote principal
     opens org.example.depositobebidassys to javafx.fxml;
     exports org.example.depositobebidassys;
 }

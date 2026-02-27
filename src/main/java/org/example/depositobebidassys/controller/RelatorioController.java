@@ -28,7 +28,7 @@ public class RelatorioController {
     @FXML private PieChart graficoTopProdutos;
 
     @FXML private TableView<VendaHistorico> tabelaHistorico;
-    @FXML private TableColumn<VendaHistorico, String> colDataHora, colMetodo, colDescricao; // Nova Coluna
+    @FXML private TableColumn<VendaHistorico, String> colDataHora, colMetodo, colDescricao;
     @FXML private TableColumn<VendaHistorico, Integer> colIdVenda;
     @FXML private TableColumn<VendaHistorico, Double> colValorTotal, colLucro;
 
@@ -44,15 +44,17 @@ public class RelatorioController {
         cbFiltroMetodo.setItems(FXCollections.observableArrayList("Todos", "Dinheiro", "PIX", "Cartão Débito", "Cartão Crédito"));
         cbFiltroMetodo.setValue("Todos");
 
+        // Binding das colunas
         colDataHora.setCellValueFactory(new PropertyValueFactory<>("dataHora"));
         colIdVenda.setCellValueFactory(new PropertyValueFactory<>("idVenda"));
         colMetodo.setCellValueFactory(new PropertyValueFactory<>("metodoPagamento"));
-        colDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao")); // Mapeamento
+        colDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao"));
         colValorTotal.setCellValueFactory(new PropertyValueFactory<>("valorTotal"));
         colLucro.setCellValueFactory(new PropertyValueFactory<>("lucro"));
 
         filtrarDados();
 
+        // Polling basico a cada 5s
         autoUpdater = new Timeline(new KeyFrame(Duration.seconds(5), e -> filtrarDados()));
         autoUpdater.setCycleCount(Timeline.INDEFINITE);
         autoUpdater.play();
@@ -143,7 +145,7 @@ public class RelatorioController {
     }
 
     public static class VendaHistorico {
-        private String dataHora, metodoPagamento, descricao; // Nova variável
+        private String dataHora, metodoPagamento, descricao;
         private int idVenda;
         private double valorTotal, lucro;
 
@@ -156,6 +158,6 @@ public class RelatorioController {
         public double getValorTotal() { return valorTotal; }
         public double getLucro() { return lucro; }
         public String getMetodoPagamento() { return metodoPagamento; }
-        public String getDescricao() { return descricao; } // Novo Getter
+        public String getDescricao() { return descricao; }
     }
 }

@@ -35,10 +35,10 @@
 
         <Region HBox.hgrow="ALWAYS" />
 
-        <Button text="✏️ EDITAR" onAction="#prepararEdicao"
+        <Button text="EDITAR" onAction="#prepararEdicao"
                 style="-fx-background-color: #f1c40f; -fx-text-fill: black; -fx-font-weight: bold;" />
 
-        <Button text="🗑️ EXCLUIR EM LOTE" onAction="#deletarEmLote"
+        <Button text="EXCLUIR EM LOTE" onAction="#deletarEmLote"
                 style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
     </HBox>
 </VBox>

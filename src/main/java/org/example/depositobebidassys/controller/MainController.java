@@ -8,15 +8,16 @@ import javafx.scene.layout.VBox;
 public class MainController {
 
     @FXML private ToggleButton btnTema;
-    @FXML private VBox rootPane; // Controla a tela toda
+    @FXML private VBox rootPane;
 
     @FXML
     public void alternarTema(ActionEvent event) {
         if (btnTema.isSelected()) {
-            btnTema.setText("Modo Escuro"); // Se está no claro, o botão sugere voltar pro escuro
+            // Toggles text and css class pro modo dark/light
+            btnTema.setText("Modo Escuro");
             rootPane.getStyleClass().add("light-mode");
         } else {
-            btnTema.setText("Modo Claro"); // Se está no escuro, sugere ir pro claro
+            btnTema.setText("Modo Claro");
             rootPane.getStyleClass().remove("light-mode");
         }
     }

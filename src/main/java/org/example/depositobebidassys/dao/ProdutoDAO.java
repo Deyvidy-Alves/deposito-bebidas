@@ -10,11 +10,8 @@ import java.util.List;
 
 public class ProdutoDAO {
 
-    /**
-     * Persiste um novo produto unitário no banco de dados.
-     * Utiliza PreparedStatements para prevenir SQL Injection.
-     */
-    public void salvar(Produto produto) {
+    // Salva produto e retorna true/false pra tela n ficar bipando pop-up atoa
+    public boolean salvar(Produto produto) {
         String sql = "INSERT INTO produtos (nome, categoria, tipo_item, codigo_barras, preco_custo, preco_venda, estoque_atual) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
@@ -23,7 +20,7 @@ public class ProdutoDAO {
 
             stmt.setString(1, produto.getNome());
             stmt.setString(2, produto.getCategoria());
-            // Índice 3: Mapeia o Enum para String para persistência no SQLite
+            // Converte enum pra string pro db aceitar
             stmt.setString(3, produto.getTipoItem().toString());
             stmt.setString(4, produto.getCodigoBarras());
             stmt.setDouble(5, produto.getPrecoCusto());
@@ -31,17 +28,17 @@ public class ProdutoDAO {
             stmt.setInt(7, produto.getEstoqueAtual());
 
             stmt.execute();
-            System.out.println("✅ Produto '" + produto.getNome() + "' cadastrado com sucesso!");
+            System.out.println("✅ Produto '" + produto.getNome() + "' cadastrado!");
+
+            return true;
 
         } catch (SQLException e) {
-            System.err.println("❌ Erro ao salvar produto no banco: " + e.getMessage());
+            System.err.println("❌ Erro ao salvar (provavel cod de barras repetido): " + e.getMessage());
+            return false;
         }
     }
 
-    /**
-     * Recupera todos os registros da tabela produtos.
-     * Inclui tratamento de erro para campos nulos e conversão de Enums.
-     */
+    // Puxa tudo pro grid do caixa e estoque
     public List<Produto> listarTodos() {
         List<Produto> produtos = new ArrayList<>();
         String sql = "SELECT * FROM produtos";
@@ -55,62 +52,57 @@ public class ProdutoDAO {
                 p.setId(rs.getInt("id"));
                 p.setNome(rs.getString("nome"));
                 p.setCategoria(rs.getString("categoria"));
-
-                // --- NOVO: Puxando o preço de custo do banco de dados ---
                 p.setPrecoCusto(rs.getDouble("preco_custo"));
-
                 p.setPrecoVenda(rs.getDouble("preco_venda"));
                 p.setEstoqueAtual(rs.getInt("estoque_atual"));
 
-                // Tratamento preventivo para evitar NullPointerException em registros antigos
+                // Fallback de segurança se o item não tiver enum setado
                 String tipoStr = rs.getString("tipo_item");
                 if (tipoStr != null && !tipoStr.isEmpty()) {
                     try {
                         p.setTipoItem(TipoItem.valueOf(tipoStr));
                     } catch (IllegalArgumentException e) {
-                        p.setTipoItem(TipoItem.PRODUTO); // Fallback caso o valor seja inválido
+                        p.setTipoItem(TipoItem.PRODUTO);
                     }
                 } else {
-                    p.setTipoItem(TipoItem.PRODUTO); // Default para registros que migraram sem o campo preenchido
+                    p.setTipoItem(TipoItem.PRODUTO);
                 }
 
                 produtos.add(p);
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao consultar lista de produtos: " + e.getMessage());
+            throw new RuntimeException("B.O. ao consultar os produtos: " + e.getMessage());
         }
         return produtos;
     }
 
-    /**
-     * Executa a persistência de um Combo e seus respectivos itens de receita.
-     * Implementa lógica de Transação (ACID) para garantir a integridade dos dados.
-     */
+    // Grava o cabeçalho do combo e os itens dele. Usa transação pra n salvar pela metade
     public void salvarCombo(Produto combo, List<ItemCombo> itens) {
         String sqlCombo = "INSERT INTO produtos (nome, categoria, tipo_item, preco_custo, preco_venda, estoque_atual) VALUES (?, ?, ?, ?, ?, ?)";
         String sqlItens = "INSERT INTO combo_itens (combo_id, produto_id, quantidade) VALUES (?, ?, ?)";
 
         try (Connection conn = new ConnectionFactory().recuperarConexao()) {
-            // Desabilita o auto-commit para gerenciar o escopo da transação manualmente
-            conn.setAutoCommit(false);
+
+            conn.setAutoCommit(false); // Trava o envio direto
 
             try (PreparedStatement stmtCombo = conn.prepareStatement(sqlCombo, Statement.RETURN_GENERATED_KEYS)) {
                 stmtCombo.setString(1, combo.getNome());
                 stmtCombo.setString(2, "Combo/Kit Promocional");
                 stmtCombo.setString(3, combo.getTipoItem().toString());
-                stmtCombo.setDouble(4, 0.0); // Preço de custo zerado para combos (calculado via itens na saída)
+                stmtCombo.setDouble(4, 0.0); // O custo dele a gnt puxa somando os itens na hora de vender
                 stmtCombo.setDouble(5, combo.getPrecoVenda());
-                stmtCombo.setInt(6, 0); // Combos não possuem estoque físico próprio, apenas virtual
+                stmtCombo.setInt(6, 0); // Combo n tem estoque fisico
 
                 stmtCombo.executeUpdate();
 
-                // Recupera o ID gerado pelo banco para vincular aos itens da receita
+                // Pega o ID q o banco gerou pro combo
                 ResultSet rs = stmtCombo.getGeneratedKeys();
                 int comboId = 0;
                 if (rs.next()) {
                     comboId = rs.getInt(1);
                 }
 
+                // Amarra as bebidas no id do combo
                 try (PreparedStatement stmtItens = conn.prepareStatement(sqlItens)) {
                     for (ItemCombo item : itens) {
                         stmtItens.setInt(1, comboId);
@@ -120,40 +112,34 @@ public class ProdutoDAO {
                     }
                 }
 
-                // Efetiva todas as operações se nenhum erro ocorrer
-                conn.commit();
+                conn.commit(); // Manda td de uma vez
 
             } catch (SQLException e) {
-                // Em caso de falha em qualquer insert, reverte todas as alterações (Rollback)
-                conn.rollback();
-                System.err.println("Erro ao salvar combo (Rollback executado): " + e.getMessage());
+                conn.rollback(); // Se deu erro no meio, cancela tudo
+                System.err.println("Deu ruim no combo, fiz rollback: " + e.getMessage());
             }
         } catch (SQLException e) {
-            System.err.println("Erro de conexão: " + e.getMessage());
+            System.err.println("Erro de conexao: " + e.getMessage());
         }
     }
 
     public void atualizar(Produto produto) {
-        // Adicionamos o preco_custo no UPDATE
         String sql = "UPDATE produtos SET nome = ?, preco_custo = ?, preco_venda = ?, estoque_atual = ? WHERE id = ?";
         try (Connection conn = new ConnectionFactory().recuperarConexao();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, produto.getNome());
-            stmt.setDouble(2, produto.getPrecoCusto()); // NOVO CAMPO
+            stmt.setDouble(2, produto.getPrecoCusto());
             stmt.setDouble(3, produto.getPrecoVenda());
             stmt.setInt(4, produto.getEstoqueAtual());
             stmt.setInt(5, produto.getId());
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao atualizar produto: " + e.getMessage());
+            throw new RuntimeException("Erro atualizando produto: " + e.getMessage());
         }
     }
 
-    /**
-     * Remove um produto do banco de dados pelo seu ID.
-     */
     public void excluir(int id) {
         String sql = "DELETE FROM produtos WHERE id = ?";
         try (Connection conn = new ConnectionFactory().recuperarConexao();
@@ -162,7 +148,7 @@ public class ProdutoDAO {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao excluir produto: " + e.getMessage());
+            throw new RuntimeException("B.O. ao deletar produto: " + e.getMessage());
         }
     }
 }

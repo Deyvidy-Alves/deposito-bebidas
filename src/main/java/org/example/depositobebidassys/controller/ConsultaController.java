@@ -32,6 +32,7 @@ public class ConsultaController {
 
     @FXML
     public void initialize() {
+        // Binda as colunas da tabela
         colID.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
@@ -41,6 +42,7 @@ public class ConsultaController {
 
         tabelaProdutos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        // Pinta a linha de vermelho se o estoque tiver baixo (menos q 10)
         tabelaProdutos.setRowFactory(tv -> new TableRow<Produto>() {
             @Override
             protected void updateItem(Produto item, boolean empty) {
@@ -89,7 +91,7 @@ public class ConsultaController {
         confirma.setTitle("Excluir em Lote");
         confirma.setHeaderText("Apagar " + selecionados.size() + " itens selecionados?");
 
-        // --- INJEÇÃO DO CSS NO ALERTA ---
+        // Injeta o CSS pra não quebrar o layout no modo dark
         confirma.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
 
         if (confirma.showAndWait().get() == ButtonType.OK) {
@@ -124,7 +126,6 @@ public class ConsultaController {
         dialog.setTitle("Ajuste de Produto");
         dialog.setHeaderText("Editando: " + selecionado.getNome());
 
-        // --- INJEÇÃO DO CSS NO MODAL DE EDIÇÃO ---
         dialog.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
 
         ButtonType botaoSalvar = new ButtonType("Salvar", ButtonBar.ButtonData.OK_DONE);
@@ -169,10 +170,7 @@ public class ConsultaController {
         alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(mensagem);
-
-        // --- INJEÇÃO DO CSS NO ALERTA DE ERRO/SUCESSO ---
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/org/example/depositobebidassys/style.css").toExternalForm());
-
         alert.showAndWait();
     }
 }

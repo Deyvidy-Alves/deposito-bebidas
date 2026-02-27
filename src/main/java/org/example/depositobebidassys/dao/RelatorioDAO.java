@@ -10,6 +10,7 @@ import java.util.Map;
 
 public class RelatorioDAO {
 
+    // Retorna Faturamento, Lucro e qtd de vendas (nessa ordem) pro dashboard
     public double[] buscarKpis(LocalDate inicio, LocalDate fim) {
         String sql = "SELECT SUM(total_bruto), SUM(lucro_liquido), COUNT(id) FROM vendas WHERE date(data_venda) BETWEEN ? AND ?";
         try (Connection conn = new ConnectionFactory().recuperarConexao();
@@ -22,9 +23,10 @@ public class RelatorioDAO {
         return new double[]{0.0, 0.0, 0.0};
     }
 
+    // Pega as vendas daquele periodo e junta os itens numa string só pra ficar bonito na tela
     public List<RelatorioController.VendaHistorico> buscarHistoricoVendas(LocalDate inicio, LocalDate fim) {
         List<RelatorioController.VendaHistorico> lista = new ArrayList<>();
-        // SQL com JOIN e GROUP_CONCAT para listar os itens limpos
+
         String sql = "SELECT v.id, v.data_venda, v.total_bruto, v.lucro_liquido, v.forma_pagamento, " +
                 "GROUP_CONCAT(iv.quantidade || 'x ' || p.nome, ', ') AS descricao_itens " +
                 "FROM vendas v " +
@@ -45,13 +47,14 @@ public class RelatorioDAO {
                         rs.getDouble("total_bruto"),
                         rs.getDouble("lucro_liquido"),
                         rs.getString("forma_pagamento"),
-                        rs.getString("descricao_itens") // Nova coluna mapeada
+                        rs.getString("descricao_itens")
                 ));
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return lista;
     }
 
+    // Traz os 5 q mais saem pro gráfico de pizza
     public Map<String, Integer> buscarTopProdutos(LocalDate inicio, LocalDate fim) {
         Map<String, Integer> top = new LinkedHashMap<>();
         String sql = "SELECT p.nome, SUM(iv.quantidade) as qtd FROM itens_venda iv " +
@@ -67,6 +70,7 @@ public class RelatorioDAO {
         return top;
     }
 
+    // Agrupa a grana q entrou por dia pro grafico de linha
     public Map<String, Double> buscarEvolucaoVendas(LocalDate inicio, LocalDate fim) {
         Map<String, Double> evolucao = new LinkedHashMap<>();
         String sql = "SELECT date(data_venda) as data, SUM(total_bruto) FROM vendas " +
@@ -78,7 +82,7 @@ public class RelatorioDAO {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 String[] partes = rs.getString(1).split("-");
-                evolucao.put(partes[2] + "/" + partes[1], rs.getDouble(2));
+                evolucao.put(partes[2] + "/" + partes[1], rs.getDouble(2)); // Formata dia/mes
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return evolucao;

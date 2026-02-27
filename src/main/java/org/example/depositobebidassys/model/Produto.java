@@ -1,5 +1,6 @@
 package org.example.depositobebidassys.model;
 
+// Coração do sistema, tudo roda em volta do Produto
 public class Produto {
     private int id;
     private String nome;
@@ -10,6 +11,7 @@ public class Produto {
     private double precoVenda;
     private int estoqueAtual;
 
+    // Construtor vazio pq as vezes o JavaFX chora se não tiver
     public Produto() {}
 
     public Produto(String nome, String categoria, TipoItem tipoItem, String codigoBarras, double precoCusto, double precoVenda, int estoqueAtual) {
@@ -22,7 +24,7 @@ public class Produto {
         this.estoqueAtual = estoqueAtual;
     }
 
-    // Getters e Setters
+    // Boilerplate de getters e setters (padrão do Java)
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public String getNome() { return nome; }
@@ -42,7 +44,7 @@ public class Produto {
 
     @Override
     public String toString() {
-        // Separação visual para facilitar a leitura no balcão
+        // Dá um tapa visual pra facilitar a leitura do Manel na hora de pesquisar
         String prefixo = (tipoItem == TipoItem.COMBO) ? "[COMBO] " : "[" + categoria + "] ";
         return prefixo + nome + " - R$ " + String.format("%.2f", precoVenda);
     }
