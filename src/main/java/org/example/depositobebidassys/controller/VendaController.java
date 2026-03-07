@@ -60,13 +60,23 @@ public class VendaController {
         carregarProdutos();
 
         // Ensina o visual do combobox a extrair o nome e preço do obj
-        cbProdutoVenda.setConverter(new StringConverter<Produto>() {
-            @Override
-            public String toString(Produto p) {
-                return p == null ? "" : p.getNome() + " - R$ " + String.format("%.2f", p.getPrecoVenda()) + " (Est: " + p.getEstoqueAtual() + ")";
+        cbProdutoVenda.setOnShowing(event -> {
+            // Só recarrega tudo do banco se a barra de pesquisa estiver VAZIA e nenhum botão tiver sido clicado.
+            // Como não temos como saber se um botão foi clicado, a forma mais segura é sempre recarregar o banco
+            carregarProdutos();
+
+            String buscaAtual = txtBuscaProduto.getText();
+
+            if (buscaAtual == null || buscaAtual.isEmpty()) {
+                cbProdutoVenda.setItems(FXCollections.observableArrayList(listaTodosProdutos));
+            } else {
+                String buscaLower = buscaAtual.toLowerCase();
+                List<Produto> filtrados = listaTodosProdutos.stream()
+                        .filter(p -> p.getNome().toLowerCase().contains(buscaLower) ||
+                                (p.getCategoria() != null && p.getCategoria().toLowerCase().contains(buscaLower)))
+                        .collect(Collectors.toList());
+                cbProdutoVenda.setItems(FXCollections.observableArrayList(filtrados));
             }
-            @Override
-            public Produto fromString(String s) { return null; }
         });
 
         // Trigger pra filtrar digitando

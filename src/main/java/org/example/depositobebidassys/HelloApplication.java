@@ -19,7 +19,7 @@ public class HelloApplication extends Application {
 
         stage.setScene(scene);
 
-        // Ja abre a tela ocupando o monitor todo, pegada padrão de sistema de caixa (PDV)
+        // Abre a tela ocupando o espaço inteiro
         stage.setMaximized(true);
 
         stage.show();
