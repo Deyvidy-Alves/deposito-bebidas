@@ -30,7 +30,7 @@ O foco do sistema é a praticidade. Ele foi projetado para ser de uso exclusivo 
 ### Passos
 1. Clone este repositório:
    ```bash
-   git clone [https://github.com/Deyvidy-Alves/deposito-bebidas](https://github.com/Deyvidy-Alves/deposito-bebidas.git)
+   git clone https://github.com/Deyvidy-Alves/deposito-bebidas.git
    ´´´
 2. Abra a pasta do projeto na sua IDE.
 
