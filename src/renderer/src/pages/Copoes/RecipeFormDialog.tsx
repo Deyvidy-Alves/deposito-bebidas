@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select'
 import { api } from '@/lib/api'
 import { formatBRL } from '@/lib/utils'
-import type { CopaRecipeWithIngredients, Product } from '@shared/types'
+import type { CopaRecipeWithIngredients, Product, ProductUnit } from '@shared/types'
 import { toast } from 'sonner'
 
 interface IngRow {
@@ -29,6 +29,19 @@ interface IngRow {
   mlUsed: number
   costPrice: number
   volumePerUnit: number
+  unit: ProductUnit
+}
+
+/** Unidades de estoque consumidas por copão (igual ao backend). */
+function stockUnits(unit: ProductUnit, volumePerUnit: number, amount: number): number {
+  if (unit === 'ml') return amount
+  if (volumePerUnit > 0) return amount / volumePerUnit
+  return amount
+}
+
+/** True quando o insumo é medido em ML (líquido). */
+function isLiquid(unit: ProductUnit, volumePerUnit: number): boolean {
+  return unit === 'ml' || volumePerUnit > 0
 }
 
 export function RecipeFormDialog({
@@ -60,16 +73,14 @@ export function RecipeFormDialog({
       setPickMl('')
       if (recipe) {
         setRows(
-          recipe.ingredients.map((i) => {
-            const p = { costPrice: 0, volumePerUnit: 0 }
-            return {
-              productId: i.productId,
-              name: i.productName,
-              mlUsed: i.mlUsed,
-              costPrice: p.costPrice,
-              volumePerUnit: p.volumePerUnit
-            }
-          })
+          recipe.ingredients.map((i) => ({
+            productId: i.productId,
+            name: i.productName,
+            mlUsed: i.mlUsed,
+            costPrice: 0,
+            volumePerUnit: 0,
+            unit: i.unit
+          }))
         )
         setPriceMode('direct')
         setDirectPrice(String(recipe.salePrice))
@@ -89,20 +100,22 @@ export function RecipeFormDialog({
     setRows((prev) =>
       prev.map((r) => {
         const p = products.find((x) => x.id === r.productId)
-        return p ? { ...r, costPrice: p.costPrice, volumePerUnit: p.volumePerUnit } : r
+        return p
+          ? { ...r, costPrice: p.costPrice, volumePerUnit: p.volumePerUnit, unit: p.unit }
+          : r
       })
     )
   }, [products])
 
   const cost = useMemo(
     () =>
-      rows.reduce((acc, r) => {
-        const c = r.volumePerUnit > 0 ? (r.mlUsed / r.volumePerUnit) * r.costPrice : 0
-        return acc + c
-      }, 0),
+      rows.reduce((acc, r) => acc + stockUnits(r.unit, r.volumePerUnit, r.mlUsed) * r.costPrice, 0),
     [rows]
   )
-  const totalMl = useMemo(() => rows.reduce((a, r) => a + r.mlUsed, 0), [rows])
+  const totalMl = useMemo(
+    () => rows.filter((r) => isLiquid(r.unit, r.volumePerUnit)).reduce((a, r) => a + r.mlUsed, 0),
+    [rows]
+  )
 
   const salePreview = useMemo(() => {
     if (priceMode === 'direct') return Number(directPrice.replace(',', '.')) || 0
@@ -114,18 +127,29 @@ export function RecipeFormDialog({
     const id = Number(pickId)
     const ml = Number(pickMl.replace(',', '.'))
     if (!id || !(ml > 0)) {
-      toast.warning('Selecione o insumo e informe os ml.')
+      toast.warning('Selecione o insumo e informe a quantidade.')
       return
     }
     const p = products.find((x) => x.id === id)
     if (!p) return
     setRows((prev) => [
       ...prev.filter((r) => r.productId !== id),
-      { productId: id, name: p.name, mlUsed: ml, costPrice: p.costPrice, volumePerUnit: p.volumePerUnit }
+      {
+        productId: id,
+        name: p.name,
+        mlUsed: ml,
+        costPrice: p.costPrice,
+        volumePerUnit: p.volumePerUnit,
+        unit: p.unit
+      }
     ])
     setPickId('')
     setPickMl('')
   }
+
+  const pickedProduct = products.find((x) => x.id === Number(pickId))
+  const pickLiquid = pickedProduct ? isLiquid(pickedProduct.unit, pickedProduct.volumePerUnit) : true
+  const pickAmountLabel = pickedProduct && !pickLiquid ? `Qtd. (${pickedProduct.unit})` : 'ML usados'
 
   async function save(): Promise<void> {
     if (!name.trim()) {
@@ -172,22 +196,31 @@ export function RecipeFormDialog({
           {/* Adicionar insumo */}
           <div className="flex items-end gap-2 rounded-lg border bg-muted/30 p-3">
             <div className="flex-1 space-y-1">
-              <Label className="text-xs">Insumo (bebida)</Label>
+              <Label className="text-xs">Insumo (bebida, gelo, etc.)</Label>
               <Select value={pickId} onValueChange={setPickId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {products.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {p.name} ({formatBRL(p.costPrice)} / {p.volumePerUnit || '?'}ml)
-                    </SelectItem>
-                  ))}
+                  {products.length === 0 ? (
+                    <div className="px-2 py-3 text-sm text-muted-foreground">
+                      Nenhum produto cadastrado. Cadastre no Estoque.
+                    </div>
+                  ) : (
+                    products.map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.name} ·{' '}
+                        {isLiquid(p.unit, p.volumePerUnit)
+                          ? `${formatBRL(p.costPrice)} / ${p.volumePerUnit || '?'}ml`
+                          : `${formatBRL(p.costPrice)} / ${p.unit}`}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
             <div className="w-28 space-y-1">
-              <Label className="text-xs">ML usados</Label>
+              <Label className="text-xs">{pickAmountLabel}</Label>
               <Input type="number" value={pickMl} onChange={(e) => setPickMl(e.target.value)} />
             </div>
             <Button onClick={addIngredient}>
@@ -204,13 +237,14 @@ export function RecipeFormDialog({
             ) : (
               <div className="divide-y">
                 {rows.map((r) => {
-                  const c = r.volumePerUnit > 0 ? (r.mlUsed / r.volumePerUnit) * r.costPrice : 0
+                  const c = stockUnits(r.unit, r.volumePerUnit, r.mlUsed) * r.costPrice
+                  const amountLabel = isLiquid(r.unit, r.volumePerUnit) ? 'ml' : r.unit
                   return (
                     <div key={r.productId} className="flex items-center justify-between px-3 py-2">
                       <div>
                         <p className="font-medium">{r.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {r.mlUsed} ml · custo {formatBRL(c)}
+                          {r.mlUsed} {amountLabel} · custo {formatBRL(c)}
                         </p>
                       </div>
                       <button
