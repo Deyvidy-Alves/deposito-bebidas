@@ -8,7 +8,7 @@ import { ClientesPage } from '@/pages/Clientes'
 import { EstoquePage } from '@/pages/Estoque'
 import { CopoesPage } from '@/pages/Copoes'
 import { FinanceiroPage } from '@/pages/Financeiro'
-import { ComingSoon } from '@/components/ComingSoon'
+import { ConfiguracoesPage } from '@/pages/Configuracoes'
 
 function App(): React.JSX.Element {
   return (
@@ -22,10 +22,7 @@ function App(): React.JSX.Element {
             <Route path="/estoque" element={<EstoquePage />} />
             <Route path="/copoes" element={<CopoesPage />} />
             <Route path="/financeiro" element={<FinanceiroPage />} />
-            <Route
-              path="/configuracoes"
-              element={<ComingSoon title="Configurações" description="Preferências do sistema" />}
-            />
+            <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           </Route>
         </Routes>
       </HashRouter>
