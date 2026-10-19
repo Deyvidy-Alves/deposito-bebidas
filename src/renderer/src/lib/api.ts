@@ -64,6 +64,7 @@ export const api = {
     get: (id: number) => invoke<Product | null>('products:get', id),
     search: (query: string) => invoke<Product[]>('products:search', query),
     lowStock: () => invoke<Product[]>('products:lowStock'),
+    categories: () => invoke<string[]>('products:categories'),
     create: (input: ProductInput) => invoke<Product>('products:create', input),
     update: (id: number, input: ProductInput) => invoke<Product>('products:update', { id, input }),
     remove: (id: number) => invoke<void>('products:remove', id),
@@ -80,6 +81,8 @@ export const api = {
     removeClient: (tableId: number, clientId: number) =>
       invoke<void>('tables:removeClient', { tableId, clientId }),
     addItem: (input: AddItemInput) => invoke<void>('tables:addItem', input),
+    updateItemQuantity: (itemId: number, quantity: number) =>
+      invoke<void>('tables:updateItemQuantity', { itemId, quantity }),
     removeItem: (itemId: number) => invoke<void>('tables:removeItem', itemId)
   },
   payments: {

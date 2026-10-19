@@ -180,6 +180,14 @@ export const ProductsService = {
     })
   },
 
+  categories(): string[] {
+    const rows = getDb()
+      .selectDistinct({ category: products.category })
+      .from(products)
+      .all()
+    return rows.map((r) => r.category).filter((c): c is string => !!c)
+  },
+
   movements(productId: number): StockMovement[] {
     return getDb()
       .select()
@@ -196,6 +204,7 @@ export const productsRoutes = {
   'products:get': (id: number) => ProductsService.get(id),
   'products:search': (query: string) => ProductsService.search(query),
   'products:lowStock': () => ProductsService.lowStock(),
+  'products:categories': () => ProductsService.categories(),
   'products:create': (input: ProductInput) => ProductsService.create(input),
   'products:update': (p: { id: number; input: ProductInput }) =>
     ProductsService.update(p.id, p.input),

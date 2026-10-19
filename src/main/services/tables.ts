@@ -280,6 +280,56 @@ export const TablesService = {
     }
   },
 
+  /** Ajusta a quantidade de um item já na mesa, sincronizando o estoque. */
+  updateItemQuantity(itemId: number, newQty: number): void {
+    const db = getDb()
+    const item = db.select().from(tableItems).where(eq(tableItems.id, itemId)).get()
+    if (!item) throw new Error('Item não encontrado.')
+    const qty = round2(newQty)
+    if (qty <= 0) {
+      TablesService.removeItem(itemId)
+      return
+    }
+    const delta = round2(qty - item.quantity)
+    if (delta === 0) return
+
+    db.transaction(() => {
+      // delta > 0 = saída adicional; delta < 0 = devolução ao estoque.
+      const applyDelta = (productId: number, perUnit: number): void => {
+        const change = round2(perUnit * Math.abs(delta))
+        if (delta > 0) {
+          const p = db.select().from(products).where(eq(products.id, productId)).get()
+          if (p && p.currentStock < change) {
+            throw new Error(`${STOCK_ERROR_PREFIX}Estoque insuficiente para aumentar a quantidade.`)
+          }
+          applyStockMovement(productId, 'out', change, { reason: 'Ajuste de item', referenceId: item.tableId })
+        } else {
+          applyStockMovement(productId, 'in', change, { reason: 'Ajuste de item', referenceId: item.tableId })
+        }
+      }
+
+      if (item.productId) {
+        applyDelta(item.productId, 1)
+      } else if (item.recipeId) {
+        const ingredients = db
+          .select()
+          .from(copaIngredients)
+          .where(eq(copaIngredients.recipeId, item.recipeId))
+          .all()
+        for (const ing of ingredients) {
+          const p = db.select().from(products).where(eq(products.id, ing.productId)).get()
+          if (!p) continue
+          applyDelta(p.id, deductionForIngredient(p.unit, p.volumePerUnit, ing.mlUsed, 1))
+        }
+      }
+
+      db.update(tableItems)
+        .set({ quantity: qty, subtotal: round2(item.unitPrice * qty) })
+        .where(eq(tableItems.id, itemId))
+        .run()
+    })
+  },
+
   removeItem(itemId: number): void {
     const db = getDb()
     const item = db.select().from(tableItems).where(eq(tableItems.id, itemId)).get()
@@ -331,5 +381,7 @@ export const tablesRoutes = {
   'tables:removeClient': (p: { tableId: number; clientId: number }) =>
     TablesService.removeClient(p.tableId, p.clientId),
   'tables:addItem': (input: AddItemInput) => TablesService.addItem(input),
+  'tables:updateItemQuantity': (p: { itemId: number; quantity: number }) =>
+    TablesService.updateItemQuantity(p.itemId, p.quantity),
   'tables:removeItem': (itemId: number) => TablesService.removeItem(itemId)
 }
