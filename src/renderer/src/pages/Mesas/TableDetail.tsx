@@ -13,6 +13,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
 import { AddItemBar } from './AddItemBar'
+import { BillDialog } from './BillDialog'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useTablesStore } from '@/stores/tables'
 import { api } from '@/lib/api'
 import { formatBRL, formatDateTime } from '@/lib/utils'
@@ -24,6 +26,10 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
   const refreshAll = useTablesStore((s) => s.refreshAll)
   const select = useTablesStore((s) => s.select)
   const [addOpen, setAddOpen] = useState(false)
+  const [billOpen, setBillOpen] = useState(false)
+  const [confirm, setConfirm] = useState<
+    { kind: 'item'; id: number; label: string } | { kind: 'participant'; id: number; label: string } | null
+  >(null)
 
   // Esc fecha o detalhe da mesa (quando nenhum diálogo está aberto).
   useEffect(() => {
@@ -97,6 +103,9 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
             <p className="text-sm text-muted-foreground">Total</p>
             <p className="text-2xl font-bold text-primary">{formatBRL(detail.total)}</p>
           </div>
+          <Button variant="outline" size="sm" onClick={() => setBillOpen(true)}>
+            <Receipt className="h-4 w-4" /> Conta
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -139,7 +148,9 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
               ) : (
                 isOpen && (
                   <button
-                    onClick={() => removeParticipant(p.id)}
+                    onClick={() =>
+                      setConfirm({ kind: 'participant', id: p.id, label: p.nickname ?? p.name })
+                    }
                     className="text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -220,7 +231,9 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
                     <span className="text-base font-semibold">{formatBRL(item.subtotal)}</span>
                     {isOpen && (
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() =>
+                          setConfirm({ kind: 'item', id: item.id, label: item.description })
+                        }
                         className="text-muted-foreground hover:text-destructive"
                         title="Remover"
                       >
@@ -257,6 +270,27 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
           await api.tables.addClient(detail.id, clientId)
           await refreshAll()
           setAddOpen(false)
+        }}
+      />
+
+      <BillDialog detail={detail} open={billOpen} onOpenChange={setBillOpen} />
+
+      <ConfirmDialog
+        open={!!confirm}
+        onOpenChange={(o) => !o && setConfirm(null)}
+        title={confirm?.kind === 'participant' ? 'Remover participante' : 'Remover item'}
+        description={
+          confirm?.kind === 'participant'
+            ? `Tirar "${confirm?.label}" desta mesa?`
+            : `Remover "${confirm?.label}"? O estoque será devolvido.`
+        }
+        confirmLabel="Remover"
+        destructive
+        onConfirm={async () => {
+          if (!confirm) return
+          if (confirm.kind === 'item') await removeItem(confirm.id)
+          else await removeParticipant(confirm.id)
+          setConfirm(null)
         }}
       />
     </div>
