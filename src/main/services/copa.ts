@@ -2,15 +2,21 @@ import { eq } from 'drizzle-orm'
 import { getDb } from '../database'
 import { copaIngredients, copaRecipes, products } from '../database/schema'
 import { round2, sumMoney } from '../lib/money'
-import type { CopaRecipeInput, CopaRecipeWithIngredients } from '@shared/types'
+import { ingredientStockUnits, isLiquidIngredient } from '../lib/copa'
+import type { CopaRecipeInput, CopaRecipeWithIngredients, ProductUnit } from '@shared/types'
 
 /**
  * Custo proporcional de um insumo no copão:
- * (ml usado ÷ ml total da garrafa) × preço de custo da garrafa.
+ * - líquido: (ml usado ÷ ml da garrafa) × custo da garrafa
+ * - gelo/outros por unidade: quantidade usada × custo do produto (a marca muda o custo)
  */
-function proportionalCost(costPrice: number, volumePerUnit: number, mlUsed: number): number {
-  if (!(volumePerUnit > 0)) return 0
-  return round2((mlUsed / volumePerUnit) * costPrice)
+function proportionalCost(
+  unit: ProductUnit,
+  costPrice: number,
+  volumePerUnit: number,
+  amount: number
+): number {
+  return round2(ingredientStockUnits(unit, volumePerUnit, amount) * costPrice)
 }
 
 function hydrate(recipeId: number): CopaRecipeWithIngredients {
@@ -62,11 +68,12 @@ export const CopaService = {
         return {
           productId: ing.productId,
           mlUsed: round2(ing.mlUsed),
-          proportionalCost: proportionalCost(p.costPrice, p.volumePerUnit, ing.mlUsed)
+          liquid: isLiquidIngredient(p.unit, p.volumePerUnit),
+          proportionalCost: proportionalCost(p.unit, p.costPrice, p.volumePerUnit, ing.mlUsed)
         }
       })
 
-      const totalMl = round2(computed.reduce((a, c) => a + c.mlUsed, 0))
+      const totalMl = round2(computed.filter((c) => c.liquid).reduce((a, c) => a + c.mlUsed, 0))
       const cost = sumMoney(computed.map((c) => c.proportionalCost))
       const { salePrice, marginPct } = resolvePricing(cost, input)
 
@@ -99,10 +106,11 @@ export const CopaService = {
         return {
           productId: ing.productId,
           mlUsed: round2(ing.mlUsed),
-          proportionalCost: proportionalCost(p.costPrice, p.volumePerUnit, ing.mlUsed)
+          liquid: isLiquidIngredient(p.unit, p.volumePerUnit),
+          proportionalCost: proportionalCost(p.unit, p.costPrice, p.volumePerUnit, ing.mlUsed)
         }
       })
-      const totalMl = round2(computed.reduce((a, c) => a + c.mlUsed, 0))
+      const totalMl = round2(computed.filter((c) => c.liquid).reduce((a, c) => a + c.mlUsed, 0))
       const cost = sumMoney(computed.map((c) => c.proportionalCost))
       const { salePrice, marginPct } = resolvePricing(cost, input)
 

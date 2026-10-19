@@ -12,10 +12,12 @@ import {
   tables
 } from '../database/schema'
 import { round2, splitEqually } from '../lib/money'
+import { ingredientStockUnits } from '../lib/copa'
 import { applyStockMovement } from './products'
 import type {
   AddItemInput,
   CreateTableInput,
+  ProductUnit,
   TableDetails,
   TableParticipant,
   TableSummary
@@ -310,16 +312,14 @@ export const TablesService = {
   }
 }
 
-/** Baixa em unidades de estoque do produto para `mlUsed` ml por copão × quantidade. */
+/** Baixa em unidades de estoque do produto para um insumo por copão × quantidade. */
 function deductionForIngredient(
-  unit: string,
+  unit: ProductUnit,
   volumePerUnit: number,
   mlUsed: number,
   qty: number
 ): number {
-  if (unit === 'ml') return mlUsed * qty
-  if (volumePerUnit > 0) return (mlUsed / volumePerUnit) * qty
-  return 0
+  return ingredientStockUnits(unit, volumePerUnit, mlUsed) * qty
 }
 
 export const tablesRoutes = {
