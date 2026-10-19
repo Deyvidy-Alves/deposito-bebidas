@@ -83,6 +83,8 @@ export const api = {
     addItem: (input: AddItemInput) => invoke<void>('tables:addItem', input),
     updateItemQuantity: (itemId: number, quantity: number) =>
       invoke<void>('tables:updateItemQuantity', { itemId, quantity }),
+    setItemSplit: (itemId: number, splits: { clientId: number; quantity: number }[]) =>
+      invoke<void>('tables:setItemSplit', { itemId, splits }),
     removeItem: (itemId: number) => invoke<void>('tables:removeItem', itemId)
   },
   payments: {

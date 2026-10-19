@@ -8,6 +8,7 @@ import {
   payments,
   products,
   tableClients,
+  tableItemConsumers,
   tableItems,
   tables
 } from '../database/schema'
@@ -138,27 +139,60 @@ export const TablesService = {
 
     const total = tableTotal(tableId)
 
-    // Rateio igualitário: divide o total restante entre participantes não liquidados.
-    const alreadySettled = participants.reduce(
-      (acc, p) => acc + settledAmount(tableId, p.id),
-      0
-    )
-    const remaining = round2(total - alreadySettled)
-    const unsettled = participants.filter((p) => !p.settled)
-    const shares = splitEqually(remaining, unsettled.length || 1)
+    // Como cada item é dividido (sem linhas = dividido igualmente por todos).
+    const consRows = db
+      .select({
+        itemId: tableItemConsumers.itemId,
+        clientId: tableItemConsumers.clientId,
+        quantity: tableItemConsumers.quantity
+      })
+      .from(tableItemConsumers)
+      .innerJoin(tableItems, eq(tableItemConsumers.itemId, tableItems.id))
+      .where(eq(tableItems.tableId, tableId))
+      .all()
+    const itemSplits: Record<number, { clientId: number; quantity: number }[]> = {}
+    for (const r of consRows) {
+      ;(itemSplits[r.itemId] ??= []).push({ clientId: r.clientId, quantity: r.quantity })
+    }
 
-    const perClientShare: Record<number, number> = {}
-    let i = 0
-    for (const p of participants) {
-      if (p.settled) {
-        perClientShare[p.id] = settledAmount(tableId, p.id)
+    // Rateio por consumo: cada item é dividido pelo peso (quantidade) de quem pegou.
+    const allIds = participants.map((p) => p.id)
+    const consumption: Record<number, number> = {}
+    for (const id of allIds) consumption[id] = 0
+    for (const item of items) {
+      const explicit = (itemSplits[item.id] ?? []).filter(
+        (s) => allIds.includes(s.clientId) && s.quantity > 0
+      )
+      if (explicit.length > 0) {
+        // Rateio proporcional ao que cada um pegou (soma sempre o subtotal).
+        const totalW = explicit.reduce((a, s) => a + s.quantity, 0)
+        const cents = Math.round(round2(item.subtotal) * 100)
+        let used = 0
+        explicit.forEach((s, idx) => {
+          const portionCents =
+            idx === explicit.length - 1
+              ? cents - used
+              : Math.round((cents * s.quantity) / totalW)
+          used += portionCents
+          consumption[s.clientId] = round2((consumption[s.clientId] ?? 0) + portionCents / 100)
+        })
       } else {
-        perClientShare[p.id] = shares[i] ?? 0
-        i++
+        // Sem atribuição = dividido igualmente entre todos os participantes.
+        const parts = splitEqually(item.subtotal, allIds.length || 1)
+        allIds.forEach((cid, idx) => {
+          consumption[cid] = round2((consumption[cid] ?? 0) + (parts[idx] ?? 0))
+        })
       }
     }
 
-    return { ...t, participants, items, total, perClientShare }
+    const perClientShare: Record<number, number> = {}
+    for (const p of participants) {
+      perClientShare[p.id] = p.settled
+        ? settledAmount(tableId, p.id)
+        : round2(consumption[p.id] ?? 0)
+    }
+
+    return { ...t, participants, items, total, perClientShare, itemSplits }
   },
 
   addClient(tableId: number, clientId: number): void {
@@ -212,7 +246,8 @@ export const TablesService = {
     const unitPrice = round2(input.unitPrice ?? product.salePrice)
     const subtotal = round2(unitPrice * qty)
 
-    db.insert(tableItems)
+    const row = db
+      .insert(tableItems)
       .values({
         tableId: input.tableId,
         productId: product.id,
@@ -223,7 +258,9 @@ export const TablesService = {
         subtotal,
         clientId: input.clientId ?? null
       })
-      .run()
+      .returning()
+      .get()
+    insertConsumers(row.id, input.consumerIds)
 
     applyStockMovement(product.id, 'out', qty, {
       reason: input.override ? `Venda (override: ${input.overrideReason ?? 'sem estoque'})` : 'Venda em mesa',
@@ -256,7 +293,8 @@ export const TablesService = {
     const unitPrice = round2(input.unitPrice ?? recipe.salePrice)
     const subtotal = round2(unitPrice * qty)
 
-    db.insert(tableItems)
+    const row = db
+      .insert(tableItems)
       .values({
         tableId: input.tableId,
         productId: null,
@@ -267,7 +305,9 @@ export const TablesService = {
         subtotal,
         clientId: input.clientId ?? null
       })
-      .run()
+      .returning()
+      .get()
+    insertConsumers(row.id, input.consumerIds)
 
     for (const ing of ingredients) {
       const p = db.select().from(products).where(eq(products.id, ing.productId)).get()
@@ -330,6 +370,25 @@ export const TablesService = {
     })
   },
 
+  /**
+   * Redefine como um item é dividido. Lista vazia (ou todas as quantidades = 0)
+   * volta ao rateio igualitário entre todos os participantes.
+   */
+  setItemSplit(itemId: number, splits: { clientId: number; quantity: number }[]): void {
+    const db = getDb()
+    db.transaction(() => {
+      db.delete(tableItemConsumers).where(eq(tableItemConsumers.itemId, itemId)).run()
+      for (const s of splits) {
+        if (s.quantity > 0) {
+          db.insert(tableItemConsumers)
+            .values({ itemId, clientId: s.clientId, quantity: round2(s.quantity) })
+            .onConflictDoNothing()
+            .run()
+        }
+      }
+    })
+  },
+
   removeItem(itemId: number): void {
     const db = getDb()
     const item = db.select().from(tableItems).where(eq(tableItems.id, itemId)).get()
@@ -362,6 +421,15 @@ export const TablesService = {
   }
 }
 
+/** Define quem divide um item: lista vazia = dividido por todos os participantes. */
+function insertConsumers(itemId: number, consumerIds?: number[]): void {
+  if (!consumerIds || consumerIds.length === 0) return
+  const db = getDb()
+  for (const cid of Array.from(new Set(consumerIds))) {
+    db.insert(tableItemConsumers).values({ itemId, clientId: cid }).onConflictDoNothing().run()
+  }
+}
+
 /** Baixa em unidades de estoque do produto para um insumo por copão × quantidade. */
 function deductionForIngredient(
   unit: ProductUnit,
@@ -383,5 +451,7 @@ export const tablesRoutes = {
   'tables:addItem': (input: AddItemInput) => TablesService.addItem(input),
   'tables:updateItemQuantity': (p: { itemId: number; quantity: number }) =>
     TablesService.updateItemQuantity(p.itemId, p.quantity),
+  'tables:setItemSplit': (p: { itemId: number; splits: { clientId: number; quantity: number }[] }) =>
+    TablesService.setItemSplit(p.itemId, p.splits),
   'tables:removeItem': (itemId: number) => TablesService.removeItem(itemId)
 }

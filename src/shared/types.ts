@@ -122,13 +122,20 @@ export interface TableParticipant extends Client {
   settled: boolean
 }
 
+export interface ItemSplitEntry {
+  clientId: number
+  quantity: number
+}
+
 /** Mesa com participantes, itens e total calculado. */
 export interface TableDetails extends TableEntity {
   participants: TableParticipant[]
   items: TableItem[]
   total: number
-  /** Parte de cada participante conforme o rateio corrente. */
+  /** Parte de cada participante conforme o rateio por consumo. */
   perClientShare: Record<number, number>
+  /** Como cada item é dividido (itemId → quem pegou e quanto). Vazio = todos igual. */
+  itemSplits: Record<number, ItemSplitEntry[]>
 }
 
 /** Resumo de mesa para cards do dashboard / listagens. */
@@ -250,6 +257,8 @@ export interface AddItemInput {
   quantity: number
   unitPrice?: number | null
   clientId?: number | null
+  /** Quem divide este item. Vazio/ausente = dividido por todos os participantes. */
+  consumerIds?: number[]
   override?: boolean
   overrideReason?: string | null
 }
