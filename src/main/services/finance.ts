@@ -43,6 +43,14 @@ export const FinanceService = {
     SettingsService.set(PWD_KEY, hashPassword(pwd))
   },
 
+  /** Altera a senha (exige a senha atual correta). */
+  changePassword(current: string, next: string): void {
+    if (FinanceService.hasPassword() && !FinanceService.verifyPassword(current)) {
+      throw new Error('Senha atual incorreta.')
+    }
+    FinanceService.setPassword(next)
+  },
+
   verifyPassword(pwd: string): boolean {
     const stored = SettingsService.get(PWD_KEY)
     if (!stored) return false
@@ -229,6 +237,8 @@ export const FinanceService = {
 export const financeRoutes = {
   'finance:hasPassword': () => FinanceService.hasPassword(),
   'finance:setPassword': (pwd: string) => FinanceService.setPassword(pwd),
+  'finance:changePassword': (p: { current: string; next: string }) =>
+    FinanceService.changePassword(p.current, p.next),
   'finance:verifyPassword': (pwd: string) => FinanceService.verifyPassword(pwd),
   'finance:summary': (period: Period) => FinanceService.summary(period),
   'finance:topProducts': (period: Period) => FinanceService.topProducts(period),

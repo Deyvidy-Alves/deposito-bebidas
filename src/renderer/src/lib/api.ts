@@ -107,6 +107,8 @@ export const api = {
   finance: {
     hasPassword: () => invoke<boolean>('finance:hasPassword'),
     setPassword: (pwd: string) => invoke<void>('finance:setPassword', pwd),
+    changePassword: (current: string, next: string) =>
+      invoke<void>('finance:changePassword', { current, next }),
     verifyPassword: (pwd: string) => invoke<boolean>('finance:verifyPassword', pwd),
     summary: (period: Period) => invoke<FinanceSummary>('finance:summary', period),
     topProducts: (period: Period) => invoke<TopProduct[]>('finance:topProducts', period),
