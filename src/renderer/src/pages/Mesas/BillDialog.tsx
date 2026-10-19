@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileDown, Receipt } from 'lucide-react'
+import { FileDown, Printer, Receipt } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,20 @@ export function BillDialog({
   onOpenChange: (o: boolean) => void
 }): React.JSX.Element {
   const [exporting, setExporting] = useState(false)
+  const [printing, setPrinting] = useState(false)
+
+  async function printThermal(): Promise<void> {
+    if (!detail) return
+    setPrinting(true)
+    try {
+      const res = await api.tables.printThermal(detail.id)
+      toast.success(res.preview ? 'Pré-visualização aberta' : 'Enviado para a impressora')
+    } catch (err) {
+      toast.error('Erro ao imprimir', { description: (err as Error).message })
+    } finally {
+      setPrinting(false)
+    }
+  }
 
   async function exportPdf(): Promise<void> {
     if (!detail) return
@@ -113,8 +127,11 @@ export function BillDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
+          <Button variant="outline" onClick={printThermal} disabled={printing}>
+            <Printer className="h-4 w-4" /> Imprimir
+          </Button>
           <Button onClick={exportPdf} disabled={exporting}>
-            <FileDown className="h-4 w-4" /> Exportar PDF
+            <FileDown className="h-4 w-4" /> PDF
           </Button>
         </DialogFooter>
       </DialogContent>
