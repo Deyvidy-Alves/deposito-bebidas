@@ -2,21 +2,51 @@ import { eq } from 'drizzle-orm'
 import { getDb } from '../database'
 import { copaIngredients, copaRecipes, products } from '../database/schema'
 import { round2, sumMoney } from '../lib/money'
-import { ingredientStockUnits, isLiquidIngredient } from '../lib/copa'
-import type { CopaRecipeInput, CopaRecipeWithIngredients, ProductUnit } from '@shared/types'
+import { ingredientStockUnits } from '../lib/copa'
+import type {
+  CopaIngredientInput,
+  CopaRecipeInput,
+  CopaRecipeWithIngredients,
+  ProductUnit
+} from '@shared/types'
+
+/** Custo de um insumo = unidades de estoque consumidas × custo do produto. */
+function costOf(unit: ProductUnit, costPrice: number, volume: number, amount: number): number {
+  return round2(ingredientStockUnits(unit, volume, amount) * costPrice)
+}
+
+interface ComputedIngredient {
+  productId: number
+  mlUsed: number
+  liquid: boolean
+  proportionalCost: number
+}
+
+// Tipo da transação do Drizzle (para o helper rodar dentro do tx).
+type Tx = Parameters<Parameters<ReturnType<typeof getDb>['transaction']>[0]>[0]
 
 /**
- * Custo proporcional de um insumo no copão:
- * - líquido: (ml usado ÷ ml da garrafa) × custo da garrafa
- * - gelo/outros por unidade: quantidade usada × custo do produto (a marca muda o custo)
+ * Resolve cada insumo: se vier `bottleMl` (dose), grava o volume no produto
+ * (para a baixa de estoque futura) e usa-o no custo proporcional; senão trata
+ * como insumo por unidade (ex.: gelo), cujo custo vem do preço daquela marca.
+ * Precisa rodar dentro de uma transação (tx) para manter a atomicidade.
  */
-function proportionalCost(
-  unit: ProductUnit,
-  costPrice: number,
-  volumePerUnit: number,
-  amount: number
-): number {
-  return round2(ingredientStockUnits(unit, volumePerUnit, amount) * costPrice)
+function computeIngredients(tx: Tx, ingredients: CopaIngredientInput[]): ComputedIngredient[] {
+  return ingredients.map((ing) => {
+    const p = tx.select().from(products).where(eq(products.id, ing.productId)).get()
+    if (!p) throw new Error('Insumo inexistente.')
+    const bottle = ing.bottleMl && ing.bottleMl > 0 ? round2(ing.bottleMl) : 0
+    if (bottle > 0 && bottle !== p.volumePerUnit) {
+      tx.update(products).set({ volumePerUnit: bottle }).where(eq(products.id, p.id)).run()
+    }
+    const effVol = bottle > 0 ? bottle : p.volumePerUnit
+    return {
+      productId: ing.productId,
+      mlUsed: round2(ing.mlUsed),
+      liquid: effVol > 0,
+      proportionalCost: costOf(p.unit, p.costPrice, effVol, ing.mlUsed)
+    }
+  })
 }
 
 function hydrate(recipeId: number): CopaRecipeWithIngredients {
@@ -31,7 +61,8 @@ function hydrate(recipeId: number): CopaRecipeWithIngredients {
       mlUsed: copaIngredients.mlUsed,
       proportionalCost: copaIngredients.proportionalCost,
       productName: products.name,
-      unit: products.unit
+      unit: products.unit,
+      volumePerUnit: products.volumePerUnit
     })
     .from(copaIngredients)
     .innerJoin(products, eq(copaIngredients.productId, products.id))
@@ -62,16 +93,7 @@ export const CopaService = {
     if (!input.ingredients?.length) throw new Error('Adicione ao menos um insumo.')
 
     return db.transaction((tx) => {
-      const computed = input.ingredients.map((ing) => {
-        const p = tx.select().from(products).where(eq(products.id, ing.productId)).get()
-        if (!p) throw new Error('Insumo inexistente.')
-        return {
-          productId: ing.productId,
-          mlUsed: round2(ing.mlUsed),
-          liquid: isLiquidIngredient(p.unit, p.volumePerUnit),
-          proportionalCost: proportionalCost(p.unit, p.costPrice, p.volumePerUnit, ing.mlUsed)
-        }
-      })
+      const computed = computeIngredients(tx, input.ingredients)
 
       const totalMl = round2(computed.filter((c) => c.liquid).reduce((a, c) => a + c.mlUsed, 0))
       const cost = sumMoney(computed.map((c) => c.proportionalCost))
@@ -100,16 +122,7 @@ export const CopaService = {
   update(id: number, input: CopaRecipeInput): CopaRecipeWithIngredients {
     const db = getDb()
     return db.transaction((tx) => {
-      const computed = input.ingredients.map((ing) => {
-        const p = tx.select().from(products).where(eq(products.id, ing.productId)).get()
-        if (!p) throw new Error('Insumo inexistente.')
-        return {
-          productId: ing.productId,
-          mlUsed: round2(ing.mlUsed),
-          liquid: isLiquidIngredient(p.unit, p.volumePerUnit),
-          proportionalCost: proportionalCost(p.unit, p.costPrice, p.volumePerUnit, ing.mlUsed)
-        }
-      })
+      const computed = computeIngredients(tx, input.ingredients)
       const totalMl = round2(computed.filter((c) => c.liquid).reduce((a, c) => a + c.mlUsed, 0))
       const cost = sumMoney(computed.map((c) => c.proportionalCost))
       const { salePrice, marginPct } = resolvePricing(cost, input)

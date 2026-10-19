@@ -145,12 +145,19 @@ export interface ClientWithBalance extends Client {
 }
 
 export interface CopaRecipeWithIngredients extends CopaRecipe {
-  ingredients: (CopaIngredient & { productName: string; unit: ProductUnit })[]
+  ingredients: (CopaIngredient & {
+    productName: string
+    unit: ProductUnit
+    volumePerUnit: number
+  })[]
 }
 
 export interface CopaIngredientInput {
   productId: number
+  /** Quantidade usada: em ml quando medido por dose; em unidades caso contrário. */
   mlUsed: number
+  /** Tamanho da embalagem em ml (dose). Vazio/0 = insumo medido por unidade (ex.: gelo). */
+  bottleMl?: number | null
 }
 
 export interface CopaRecipeInput {
