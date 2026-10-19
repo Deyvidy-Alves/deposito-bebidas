@@ -1,41 +1,71 @@
-# 🍻 Depósito do Neneu - Sistema de Gestão e PDV
+# 🍻 Depósito — Sistema de Gestão
 
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![JavaFX](https://img.shields.io/badge/JavaFX-FF0000?style=for-the-badge&logo=java&logoColor=white)
+Sistema desktop para gestão de depósito de bebidas: mesas (comandas), clientes,
+crediário, estoque, copões, financeiro e módulo fiscal opcional. 100% local, sem
+servidor externo.
+
+![Electron](https://img.shields.io/badge/Electron-2C2E3B?style=for-the-badge&logo=electron&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
-## 📋 Sobre o Projeto
-O **Depósito do Neneu** é um sistema desktop de gestão e frente de caixa (PDV) desenvolvido sob medida para administrar uma distribuidora de bebidas. O projeto foi construído do zero utilizando **Java puro e JavaFX** para a criação da interface gráfica.
+## 🧱 Stack
 
-O foco do sistema é a praticidade. Ele foi projetado para ser de uso exclusivo do proprietário (Single-User), eliminando complexidades desnecessárias e garantindo agilidade no dia a dia do depósito. Para zerar os custos de infraestrutura e hospedagem para o cliente, a persistência de dados foi implementada de forma 100% local utilizando **SQLite**.
+- **Electron** (processo principal + renderer isolado via IPC tipado)
+- **React + Vite + TypeScript** (strict) no renderer
+- **SQLite** via **better-sqlite3** (banco local)
+- **Drizzle ORM** (schema tipado + migrations)
+- **Zustand** (estado), **zod** (validação de formulários)
+- **shadcn/ui + Tailwind CSS**, **Sonner** (toasts), **lucide-react** (ícones)
+- Exportação de relatórios em **CSV** e **PDF** (Chromium nativo do Electron)
 
-## 🚀 Funcionalidades Principais
-* **Controle de Estoque:** Cadastro completo de bebidas, registro rápido de entradas (compras) e acompanhamento do inventário.
-* **Frente de Caixa (PDV):** Interface otimizada para o registro ágil de vendas diretas ao cliente.
-* **FRelatório Finaceiro:** Levantamento de Lucro líquido e bruto, demonstração em gráfico e exportação em PDF.
-* **Gestão Centralizada (Admin Único):** O sistema não possui burocracia de níveis de acesso. O proprietário tem controle total e imediato sobre preços de custo, preços de venda, lucros e movimentações físicas em uma única tela.
+## 📦 Módulos
 
-## 🛠️ Tecnologias Utilizadas
-* **Back-end:** Java (Lógica de negócios e POO pura)
-* **Front-end / UI:** JavaFX (Arquivos FXML e Controllers)
-* **Banco de Dados:** SQLite (Armazenamento local via JDBC)
-* **Arquitetura:** Padrão MVC (Model-View-Controller) adaptado para desktop
+1. **Início** — dashboard com mesas abertas, alertas de estoque baixo e resumo do caixa do dia.
+2. **Mesas** — comandas de consumo em grupo, itens por busca, rateio igualitário/manual, baixa automática de estoque.
+3. **Clientes** — CRUD, saldo devedor calculado, histórico de mesas e pagamentos.
+4. **Abatimento inteligente** — distribui o valor pago pelas mesas devedoras (da menor para a maior) até esgotar o crédito.
+5. **Pagamentos & Crediário** — pagamento por participante (dinheiro/PIX/cartão/crediário/misto), "todos no crediário", fechamento parcial.
+6. **Copões** — receitas com cálculo de custo proporcional por ML e preço por margem ou valor direto; baixa dos insumos ao vender.
+7. **Estoque** — produtos (un/ml/kg), entradas, ajustes com motivo, histórico de movimentações e alertas de mínimo.
+8. **Financeiro** (restrito por senha) — faturamento, CMV, lucro bruto/líquido, despesas, relatórios e exportação.
+9. **Fiscal** (opcional, desativado por padrão) — estrutura de emissão de nota via API REST e hook para SAT/MFE.
 
-## 💻 Como Executar o Projeto Localmente
+## ⌨️ Atalhos
 
-### Pré-requisitos
-* JDK 17 (ou superior) instalado.
-* IDE com suporte a JavaFX (IntelliJ IDEA recomendado).
+- `Ctrl + K` — busca global (clientes, produtos, mesas)
+- `F2` — nova mesa · `F3` — buscar
 
-### Passos
-1. Clone este repositório:
-   ```bash
-   git clone https://github.com/Deyvidy-Alves/deposito-bebidas.git
-   ´´´
-2. Abra a pasta do projeto na sua IDE.
+## 💻 Desenvolvimento
 
-3. Certifique-se de que o driver JDBC do SQLite está adicionado às bibliotecas do projeto.
+Pré-requisitos: **Node.js 18+**.
 
-4. O arquivo do banco de dados local (.db ou .sqlite) será criado automaticamente na raiz do projeto na primeira execução (ou já está incluso no repositório).
+```bash
+npm install          # instala dependências e recompila o better-sqlite3 para o Electron
+npm run dev          # inicia o app em modo desenvolvimento
+npm run build        # build de produção (main + preload + renderer)
+npm run typecheck    # checagem de tipos (node + web)
+npm run db:generate  # gera uma nova migration a partir do schema
+npm run dist         # empacota o instalador (electron-builder)
+```
 
-5. Execute a classe principal (ex: Main.java) para iniciar a aplicação.
+O banco `deposito.db` é criado automaticamente na primeira execução (na raiz em
+desenvolvimento; em `userData` quando empacotado) e as migrations são aplicadas no boot.
+
+## 🗂️ Estrutura
+
+```
+src/
+  main/              # processo principal (Electron)
+    database/        # schema Drizzle, conexão e migrations
+    services/        # regras de negócio por domínio
+    lib/             # utilitários (dinheiro, etc.)
+    ipc.ts           # registro dos handlers IPC
+  preload/           # ponte segura (contextBridge)
+  shared/            # DTOs compartilhados main/renderer
+  renderer/src/      # UI React
+    components/ui/   # componentes base (shadcn/ui)
+    pages/           # uma pasta por módulo
+    stores/          # stores Zustand
+    lib/             # api tipada + utilitários
+```
