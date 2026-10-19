@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Trash2, UserPlus, Users, Receipt, DoorClosed, X, Plus, Minus } from 'lucide-react'
+import { Trash2, UserPlus, Users, Receipt, DoorClosed, X, Plus, Minus, SplitSquareHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
 import { AddItemBar } from './AddItemBar'
 import { useTablesStore } from '@/stores/tables'
@@ -205,6 +206,17 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    {isOpen && detail.participants.length > 1 && (
+                      <ItemSplitControl
+                        itemQuantity={item.quantity}
+                        participants={detail.participants}
+                        splits={detail.itemSplits[item.id] ?? []}
+                        onChange={async (splits) => {
+                          await api.tables.setItemSplit(item.id, splits)
+                          await refreshAll()
+                        }}
+                      />
+                    )}
                     <span className="text-base font-semibold">{formatBRL(item.subtotal)}</span>
                     {isOpen && (
                       <button
@@ -248,6 +260,97 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
         }}
       />
     </div>
+  )
+}
+
+function ItemSplitControl({
+  itemQuantity,
+  participants,
+  splits,
+  onChange
+}: {
+  itemQuantity: number
+  participants: { id: number; name: string; nickname: string | null }[]
+  splits: { clientId: number; quantity: number }[]
+  onChange: (splits: { clientId: number; quantity: number }[]) => void
+}): React.JSX.Element {
+  const custom = splits.length > 0
+  // Quantidade atribuída a cada pessoa (0 quando ninguém foi definido = igual).
+  const qtyOf = (id: number): number => splits.find((s) => s.clientId === id)?.quantity ?? 0
+
+  function setQty(id: number, q: number): void {
+    const map = new Map(splits.map((s) => [s.clientId, s.quantity]))
+    const q2 = Math.max(0, q)
+    if (q2 === 0) map.delete(id)
+    else map.set(id, q2)
+    onChange([...map.entries()].map(([clientId, quantity]) => ({ clientId, quantity })))
+  }
+
+  const assigned = splits.reduce((a, s) => a + s.quantity, 0)
+  const label = custom ? `${assigned}/${itemQuantity}` : 'Igual'
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5 text-sm"
+          title="Dividir item por quem pegou"
+        >
+          <SplitSquareHorizontal className="h-4 w-4" />
+          {label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2" align="end">
+        <div className="flex items-center justify-between px-1 pb-1">
+          <p className="text-xs text-muted-foreground">Quanto cada um pegou</p>
+          {custom && (
+            <button
+              className="text-xs text-primary hover:underline"
+              onClick={() => onChange([])}
+            >
+              Dividir igual
+            </button>
+          )}
+        </div>
+        <div className="space-y-0.5">
+          {participants.map((p) => {
+            const q = qtyOf(p.id)
+            return (
+              <div key={p.id} className="flex items-center justify-between rounded-md px-2 py-1">
+                <span className="text-base">{p.nickname ?? p.name}</span>
+                <div className="flex items-center rounded-md border">
+                  <button
+                    className="px-1.5 py-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => setQty(p.id, q - 1)}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="min-w-6 text-center text-sm font-semibold">{q}</span>
+                  <button
+                    className="px-1.5 py-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => setQty(p.id, q + 1)}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        {custom && (
+          <p
+            className={`px-1 pt-1 text-xs ${
+              Math.abs(assigned - itemQuantity) < 0.001 ? 'text-muted-foreground' : 'text-warning'
+            }`}
+          >
+            Atribuído: {assigned} de {itemQuantity}
+            {Math.abs(assigned - itemQuantity) >= 0.001 && ' (o valor é rateado proporcionalmente)'}
+          </p>
+        )}
+      </PopoverContent>
+    </Popover>
   )
 }
 
