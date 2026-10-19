@@ -1,19 +1,46 @@
-import { Beer } from 'lucide-react'
+import { HashRouter, Routes, Route } from 'react-router-dom'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from '@/components/ui/sonner'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { DashboardPage } from '@/pages/Dashboard'
+import { ComingSoon } from '@/components/ComingSoon'
 
 function App(): React.JSX.Element {
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Beer className="h-10 w-10" />
-        </div>
-        <h1 className="text-2xl font-bold text-foreground">Depósito — Sistema de Gestão</h1>
-        <p className="max-w-md text-base text-muted-foreground">
-          Ambiente Electron + React + TypeScript configurado. Banco de dados e módulos
-          serão habilitados nos próximos passos.
-        </p>
-      </div>
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <HashRouter>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route
+              path="/mesas"
+              element={<ComingSoon title="Mesas" description="Sessões de consumo e pedidos" />}
+            />
+            <Route
+              path="/clientes"
+              element={<ComingSoon title="Clientes" description="Cadastro e saldo devedor" />}
+            />
+            <Route
+              path="/estoque"
+              element={<ComingSoon title="Estoque" description="Produtos e movimentações" />}
+            />
+            <Route
+              path="/copoes"
+              element={<ComingSoon title="Copões" description="Receitas de bebidas" />}
+            />
+            <Route
+              path="/financeiro"
+              element={<ComingSoon title="Financeiro" description="Faturamento, custos e lucro" />}
+            />
+            <Route
+              path="/configuracoes"
+              element={<ComingSoon title="Configurações" description="Preferências do sistema" />}
+            />
+          </Route>
+        </Routes>
+      </HashRouter>
+      <Toaster />
+    </TooltipProvider>
   )
 }
 
