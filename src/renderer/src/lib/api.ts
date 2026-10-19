@@ -5,8 +5,13 @@ import type {
   ClientDetail,
   ClientInput,
   ClientWithBalance,
+  CloseTableInput,
+  CloseTableResult,
   CreateTableInput,
+  CreditSettlementInput,
+  CreditSettlementResult,
   DashboardData,
+  DebtorTable,
   Product,
   ProductInput,
   SearchResult,
@@ -63,6 +68,14 @@ export const api = {
       invoke<void>('tables:removeClient', { tableId, clientId }),
     addItem: (input: AddItemInput) => invoke<void>('tables:addItem', input),
     removeItem: (itemId: number) => invoke<void>('tables:removeItem', itemId)
+  },
+  payments: {
+    closeTable: (input: CloseTableInput) => invoke<CloseTableResult>('payments:closeTable', input)
+  },
+  credit: {
+    debtorTables: (clientId: number) => invoke<DebtorTable[]>('credit:debtorTables', clientId),
+    settle: (input: CreditSettlementInput) =>
+      invoke<CreditSettlementResult>('credit:settle', input)
   }
 }
 

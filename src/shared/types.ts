@@ -235,6 +235,53 @@ export interface AddItemInput {
   overrideReason?: string | null
 }
 
+export interface PaymentBreakdown {
+  cash?: number
+  pix?: number
+  card?: number
+  credit?: number
+}
+
+export interface SettleParticipantInput {
+  clientId: number
+  method: PaymentMethod
+  amount: number
+  breakdown?: PaymentBreakdown
+}
+
+export interface CloseTableInput {
+  tableId: number
+  settlements: SettleParticipantInput[]
+  operator?: string | null
+}
+
+export interface CloseTableResult {
+  tableClosed: boolean
+  remainingParticipants: number
+}
+
+export interface CreditSettlementInput {
+  clientId: number
+  amount: number
+  method: Exclude<PaymentMethod, 'credit' | 'mixed'>
+  operator?: string | null
+}
+
+export interface CreditSettlementResult {
+  requested: number
+  applied: number
+  remainingCredit: number // valor do abatimento que sobrou (crédito não usado)
+  remainingDebt: number
+  fullySettled: { tableId: number; label: string | null; amount: number }[]
+  partiallySettled: { tableId: number; label: string | null; amount: number; left: number }[]
+}
+
+export interface DebtorTable {
+  tableId: number
+  label: string | null
+  outstanding: number
+}
+
 export interface ClientDetail {
   client: Client
   debt: number

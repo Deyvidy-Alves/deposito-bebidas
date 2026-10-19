@@ -5,6 +5,8 @@ import { searchRoutes } from './services/search'
 import { clientsRoutes } from './services/clients'
 import { productsRoutes } from './services/products'
 import { tablesRoutes } from './services/tables'
+import { paymentsRoutes } from './services/payments'
+import { creditRoutes } from './services/credit'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RouteMap = Record<string, (payload: any) => unknown | Promise<unknown>>
@@ -16,7 +18,9 @@ const routes: RouteMap = {
   ...searchRoutes,
   ...clientsRoutes,
   ...productsRoutes,
-  ...tablesRoutes
+  ...tablesRoutes,
+  ...paymentsRoutes,
+  ...creditRoutes
 }
 
 /** Registra todos os handlers IPC com envelope padrão { ok, data | error }. */
