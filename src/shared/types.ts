@@ -309,6 +309,57 @@ export interface ClientDetail {
   creditTransactions: CreditTransaction[]
 }
 
+// ─────────────────────── Financeiro ───────────────────────
+
+export interface Period {
+  from: string // YYYY-MM-DD
+  to: string // YYYY-MM-DD
+}
+
+export interface FinanceSummary {
+  revenue: number // faturamento recebido (dinheiro + pix + cartão + misto)
+  byMethod: { cash: number; pix: number; card: number }
+  cmv: number // custo de mercadoria vendida
+  grossProfit: number // faturamento - CMV
+  expenses: number // despesas operacionais do período
+  netProfit: number // lucro bruto - despesas
+  pendingCredit: number // saldo devedor total (crediário)
+}
+
+export interface TopProduct {
+  productId: number | null
+  name: string
+  quantity: number
+  revenue: number
+}
+
+export interface SalesByDay {
+  date: string
+  total: number
+}
+
+export interface Debtor {
+  id: number
+  name: string
+  nickname: string | null
+  debt: number
+}
+
+export interface CashFlowDay {
+  date: string
+  inflow: number
+  outflow: number
+}
+
+export interface ExpenseInput {
+  description: string
+  category?: string | null
+  amount: number
+  date: string
+}
+
+export type ReportKind = 'top-products' | 'sales-by-day' | 'debtors' | 'cash-flow' | 'summary'
+
 // ─────────────────────── Busca global ───────────────────────
 
 export type SearchResultKind = 'client' | 'product' | 'table'

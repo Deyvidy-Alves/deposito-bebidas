@@ -13,7 +13,16 @@ import type {
   CreditSettlementInput,
   CreditSettlementResult,
   DashboardData,
+  Debtor,
   DebtorTable,
+  CashFlowDay,
+  ExpenseInput,
+  Expense,
+  FinanceSummary,
+  Period,
+  ReportKind,
+  SalesByDay,
+  TopProduct,
   Product,
   ProductInput,
   SearchResult,
@@ -86,6 +95,22 @@ export const api = {
     update: (id: number, input: CopaRecipeInput) =>
       invoke<CopaRecipeWithIngredients>('copa:update', { id, input }),
     remove: (id: number) => invoke<void>('copa:remove', id)
+  },
+  finance: {
+    hasPassword: () => invoke<boolean>('finance:hasPassword'),
+    setPassword: (pwd: string) => invoke<void>('finance:setPassword', pwd),
+    verifyPassword: (pwd: string) => invoke<boolean>('finance:verifyPassword', pwd),
+    summary: (period: Period) => invoke<FinanceSummary>('finance:summary', period),
+    topProducts: (period: Period) => invoke<TopProduct[]>('finance:topProducts', period),
+    salesByDay: (period: Period) => invoke<SalesByDay[]>('finance:salesByDay', period),
+    debtors: () => invoke<Debtor[]>('finance:debtors'),
+    cashFlow: (period: Period) => invoke<CashFlowDay[]>('finance:cashFlow', period),
+    listExpenses: (period: Period) => invoke<Expense[]>('finance:listExpenses', period),
+    addExpense: (input: ExpenseInput) => invoke<Expense>('finance:addExpense', input),
+    removeExpense: (id: number) => invoke<void>('finance:removeExpense', id),
+    exportCsv: (kind: ReportKind, period: Period) =>
+      invoke<string | null>('finance:exportCsv', { kind, period }),
+    exportPdf: (period: Period) => invoke<string | null>('finance:exportPdf', period)
   }
 }
 
