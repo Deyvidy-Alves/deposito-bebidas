@@ -148,6 +148,18 @@ export interface CopaRecipeWithIngredients extends CopaRecipe {
   ingredients: (CopaIngredient & { productName: string; unit: ProductUnit })[]
 }
 
+export interface CopaIngredientInput {
+  productId: number
+  mlUsed: number
+}
+
+export interface CopaRecipeInput {
+  name: string
+  ingredients: CopaIngredientInput[]
+  salePrice?: number | null
+  marginPct?: number | null
+}
+
 // ─────────────────────── Dashboard ───────────────────────
 
 export interface DashboardOpenTable {

@@ -7,6 +7,8 @@ import type {
   ClientWithBalance,
   CloseTableInput,
   CloseTableResult,
+  CopaRecipeInput,
+  CopaRecipeWithIngredients,
   CreateTableInput,
   CreditSettlementInput,
   CreditSettlementResult,
@@ -76,6 +78,14 @@ export const api = {
     debtorTables: (clientId: number) => invoke<DebtorTable[]>('credit:debtorTables', clientId),
     settle: (input: CreditSettlementInput) =>
       invoke<CreditSettlementResult>('credit:settle', input)
+  },
+  copa: {
+    list: () => invoke<CopaRecipeWithIngredients[]>('copa:list'),
+    get: (id: number) => invoke<CopaRecipeWithIngredients>('copa:get', id),
+    create: (input: CopaRecipeInput) => invoke<CopaRecipeWithIngredients>('copa:create', input),
+    update: (id: number, input: CopaRecipeInput) =>
+      invoke<CopaRecipeWithIngredients>('copa:update', { id, input }),
+    remove: (id: number) => invoke<void>('copa:remove', id)
   }
 }
 
