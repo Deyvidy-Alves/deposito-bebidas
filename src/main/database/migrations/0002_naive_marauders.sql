@@ -1,0 +1,1 @@
+ALTER TABLE `table_item_consumers` ADD `quantity` real DEFAULT 1 NOT NULL;

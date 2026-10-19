@@ -8,6 +8,20 @@
       "when": 1792376238006,
       "tag": "0000_boring_agent_zero",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792385445641,
+      "tag": "0001_jittery_spirit",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792393798282,
+      "tag": "0002_naive_marauders",
+      "breakpoints": true
     }
   ]
 }

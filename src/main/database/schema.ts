@@ -98,6 +98,25 @@ export const tableItems = sqliteTable(
   })
 )
 
+// Rateio por consumo: quanto cada pessoa pegou de um item (peso). Sem linhas =
+// dividido igualmente por todos os participantes.
+export const tableItemConsumers = sqliteTable(
+  'table_item_consumers',
+  {
+    itemId: integer('item_id')
+      .notNull()
+      .references(() => tableItems.id, { onDelete: 'cascade' }),
+    clientId: integer('client_id')
+      .notNull()
+      .references(() => clients.id, { onDelete: 'cascade' }),
+    // Quantidade/peso que esta pessoa consumiu deste item.
+    quantity: real('quantity').notNull().default(1)
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.itemId, t.clientId] })
+  })
+)
+
 // ───────────────────────────── Pagamentos ───────────────────────────
 export const payments = sqliteTable(
   'payments',
@@ -224,6 +243,7 @@ export type Product = typeof products.$inferSelect
 export type NewProduct = typeof products.$inferInsert
 export type TableItem = typeof tableItems.$inferSelect
 export type NewTableItem = typeof tableItems.$inferInsert
+export type TableItemConsumer = typeof tableItemConsumers.$inferSelect
 export type Payment = typeof payments.$inferSelect
 export type NewPayment = typeof payments.$inferInsert
 export type CreditTransaction = typeof creditTransactions.$inferSelect
