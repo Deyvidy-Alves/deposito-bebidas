@@ -148,5 +148,51 @@ export interface CopaRecipeWithIngredients extends CopaRecipe {
   ingredients: (CopaIngredient & { productName: string; unit: ProductUnit })[]
 }
 
+// ─────────────────────── Dashboard ───────────────────────
+
+export interface DashboardOpenTable {
+  id: number
+  label: string | null
+  status: TableStatus
+  createdAt: string
+  total: number
+  itemCount: number
+  participants: { id: number; name: string; nickname: string | null }[]
+}
+
+export interface DashboardLowStock {
+  id: number
+  name: string
+  unit: ProductUnit
+  currentStock: number
+  minStock: number
+}
+
+export interface DashboardCash {
+  cash: number
+  pix: number
+  card: number
+  credit: number
+  received: number
+  pendingCredit: number
+}
+
+export interface DashboardData {
+  openTables: DashboardOpenTable[]
+  lowStock: DashboardLowStock[]
+  cash: DashboardCash
+}
+
+// ─────────────────────── Busca global ───────────────────────
+
+export type SearchResultKind = 'client' | 'product' | 'table'
+
+export interface SearchResult {
+  kind: SearchResultKind
+  id: number
+  title: string
+  subtitle: string
+}
+
 /** Envelope padrão de resposta IPC. */
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; error: string }

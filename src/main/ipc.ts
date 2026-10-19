@@ -1,12 +1,16 @@
 import { ipcMain } from 'electron'
 import { settingsRoutes } from './services/settings'
+import { dashboardRoutes } from './services/dashboard'
+import { searchRoutes } from './services/search'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RouteMap = Record<string, (payload: any) => unknown | Promise<unknown>>
 
 // Cada módulo registra suas rotas aqui. O canal segue o padrão "dominio:acao".
 const routes: RouteMap = {
-  ...settingsRoutes
+  ...settingsRoutes,
+  ...dashboardRoutes,
+  ...searchRoutes
 }
 
 /** Registra todos os handlers IPC com envelope padrão { ok, data | error }. */

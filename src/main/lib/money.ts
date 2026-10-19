@@ -9,6 +9,11 @@ export function round2(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100
 }
 
+/** Formata um número como moeda brasileira (R$). */
+export function formatBRL(value: number): string {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0)
+}
+
 /** Soma uma lista de valores monetários com arredondamento seguro. */
 export function sumMoney(values: number[]): number {
   return round2(values.reduce((acc, v) => acc + (v || 0), 0))
