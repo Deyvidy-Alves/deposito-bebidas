@@ -183,6 +183,73 @@ export interface DashboardData {
   cash: DashboardCash
 }
 
+// ─────────────────────── Inputs (formulários) ───────────────────────
+
+export interface ClientInput {
+  name: string
+  nickname?: string | null
+  phone?: string | null
+}
+
+export interface ProductInput {
+  name: string
+  category?: string | null
+  unit: ProductUnit
+  volumePerUnit?: number
+  costPrice: number
+  salePrice: number
+  minStock?: number
+  currentStock?: number
+  barcode?: string | null
+}
+
+export interface StockEntryInput {
+  productId: number
+  quantity: number
+  unitCost?: number | null
+  supplier?: string | null
+  operator?: string | null
+  date?: string | null
+}
+
+export interface StockAdjustInput {
+  productId: number
+  newQuantity: number
+  reason: string
+  operator?: string | null
+}
+
+export interface CreateTableInput {
+  clientIds: number[]
+  label?: string | null
+}
+
+export interface AddItemInput {
+  tableId: number
+  productId?: number | null
+  recipeId?: number | null
+  quantity: number
+  unitPrice?: number | null
+  clientId?: number | null
+  override?: boolean
+  overrideReason?: string | null
+}
+
+export interface ClientDetail {
+  client: Client
+  debt: number
+  tableHistory: {
+    tableId: number
+    label: string | null
+    status: string
+    createdAt: string
+    closedAt: string | null
+    share: number
+  }[]
+  payments: Payment[]
+  creditTransactions: CreditTransaction[]
+}
+
 // ─────────────────────── Busca global ───────────────────────
 
 export type SearchResultKind = 'client' | 'product' | 'table'

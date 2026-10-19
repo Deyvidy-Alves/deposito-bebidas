@@ -2,6 +2,9 @@ import { ipcMain } from 'electron'
 import { settingsRoutes } from './services/settings'
 import { dashboardRoutes } from './services/dashboard'
 import { searchRoutes } from './services/search'
+import { clientsRoutes } from './services/clients'
+import { productsRoutes } from './services/products'
+import { tablesRoutes } from './services/tables'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RouteMap = Record<string, (payload: any) => unknown | Promise<unknown>>
@@ -10,7 +13,10 @@ export type RouteMap = Record<string, (payload: any) => unknown | Promise<unknow
 const routes: RouteMap = {
   ...settingsRoutes,
   ...dashboardRoutes,
-  ...searchRoutes
+  ...searchRoutes,
+  ...clientsRoutes,
+  ...productsRoutes,
+  ...tablesRoutes
 }
 
 /** Registra todos os handlers IPC com envelope padrão { ok, data | error }. */
