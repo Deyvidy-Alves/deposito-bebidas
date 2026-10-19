@@ -10,6 +10,8 @@ build/
 # Banco de dados local (gerado em runtime)
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 *.sqlite
 
 # Relatórios gerados
