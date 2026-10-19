@@ -13,6 +13,22 @@ export function formatBRL(value: number): string {
   }).format(value || 0)
 }
 
+/** Rótulo amigável para a forma de pagamento. */
+export function paymentMethodLabel(method: string): string {
+  return (
+    { cash: 'Dinheiro', pix: 'PIX', card: 'Cartão', credit: 'Fiado', mixed: 'Misto' }[method] ??
+    method
+  )
+}
+
+/** Resume as formas de pagamento de uma pessoa (ex.: "Dinheiro", "Misto"). */
+export function summarizePayments(entries: { method: string; amount: number }[]): string {
+  if (!entries || entries.length === 0) return ''
+  const methods = Array.from(new Set(entries.map((e) => e.method)))
+  if (methods.length === 1) return paymentMethodLabel(methods[0])
+  return 'Misto'
+}
+
 /** Data local no formato YYYY-MM-DD. */
 export function toISODate(d: Date): string {
   const y = d.getFullYear()
