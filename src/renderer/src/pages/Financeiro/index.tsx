@@ -3,6 +3,7 @@ import {
   Banknote,
   Download,
   FileText,
+  KeyRound,
   Plus,
   Trash2,
   TrendingDown,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { FinanceGate } from './FinanceGate'
+import { ChangePasswordDialog } from './ChangePasswordDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -45,6 +47,7 @@ function FinanceContent(): React.JSX.Element {
   const [period, setPeriod] = useState<Period>(periodPreset('month'))
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [tab, setTab] = useState('resumo')
+  const [pwdOpen, setPwdOpen] = useState(false)
 
   const applyPreset = (p: 'day' | 'week' | 'month'): void => {
     setPreset(p)
@@ -84,6 +87,9 @@ function FinanceContent(): React.JSX.Element {
   return (
     <div className="flex h-full flex-col">
       <PageHeader title="Financeiro" description="Faturamento, custos e lucro">
+        <Button variant="outline" onClick={() => setPwdOpen(true)}>
+          <KeyRound /> Alterar senha
+        </Button>
         <Button variant="outline" onClick={exportPdf}>
           <FileText /> Exportar PDF
         </Button>
@@ -181,6 +187,8 @@ function FinanceContent(): React.JSX.Element {
           </Tabs>
         </div>
       </ScrollArea>
+
+      <ChangePasswordDialog open={pwdOpen} onOpenChange={setPwdOpen} />
     </div>
   )
 }
