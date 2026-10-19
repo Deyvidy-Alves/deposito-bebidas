@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Minus, Plus, Search } from 'lucide-react'
+import { GlassWater, Minus, Package, Plus, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,10 +12,14 @@ import {
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { formatBRL } from '@/lib/utils'
-import type { AddItemInput, Product } from '@shared/types'
+import type { AddItemInput, CopaRecipeWithIngredients, Product } from '@shared/types'
 import { toast } from 'sonner'
 
 const STOCK_PREFIX = 'ESTOQUE_INSUFICIENTE:'
+
+type Hit =
+  | { kind: 'product'; product: Product }
+  | { kind: 'recipe'; recipe: CopaRecipeWithIngredients }
 
 export function AddItemBar({
   tableId,
@@ -25,12 +29,17 @@ export function AddItemBar({
   onAdded: () => void
 }): React.JSX.Element {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Product[]>([])
+  const [results, setResults] = useState<Hit[]>([])
+  const [recipes, setRecipes] = useState<CopaRecipeWithIngredients[]>([])
   const [qty, setQty] = useState(1)
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState<{ input: AddItemInput; message: string } | null>(null)
   const [reason, setReason] = useState('')
   const boxRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    api.copa.list().then(setRecipes).catch(() => setRecipes([]))
+  }, [])
 
   useEffect(() => {
     if (!query.trim()) {
@@ -40,9 +49,14 @@ export function AddItemBar({
     let active = true
     const t = setTimeout(async () => {
       try {
-        const r = await api.products.search(query)
+        const prods = await api.products.search(query)
+        const q = query.trim().toLowerCase()
+        const recipeHits: Hit[] = recipes
+          .filter((r) => r.name.toLowerCase().includes(q))
+          .map((r) => ({ kind: 'recipe', recipe: r }))
+        const prodHits: Hit[] = prods.map((p) => ({ kind: 'product', product: p }))
         if (active) {
-          setResults(r)
+          setResults([...recipeHits, ...prodHits])
           setOpen(true)
         }
       } catch {
@@ -53,7 +67,7 @@ export function AddItemBar({
       active = false
       clearTimeout(t)
     }
-  }, [query])
+  }, [query, recipes])
 
   useEffect(() => {
     function onClick(e: MouseEvent): void {
@@ -63,11 +77,15 @@ export function AddItemBar({
     return () => document.removeEventListener('mousedown', onClick)
   }, [])
 
-  async function add(product: Product): Promise<void> {
-    const input: AddItemInput = { tableId, productId: product.id, quantity: qty }
+  async function add(hit: Hit): Promise<void> {
+    const input: AddItemInput =
+      hit.kind === 'product'
+        ? { tableId, productId: hit.product.id, quantity: qty }
+        : { tableId, recipeId: hit.recipe.id, quantity: qty }
+    const name = hit.kind === 'product' ? hit.product.name : hit.recipe.name
     try {
       await api.tables.addItem(input)
-      toast.success(`${qty}× ${product.name} adicionado`)
+      toast.success(`${qty}× ${name} adicionado`)
       resetAfterAdd()
       onAdded()
     } catch (err) {
@@ -121,33 +139,55 @@ export function AddItemBar({
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="pl-9"
-          placeholder="Buscar produto por nome, categoria ou código..."
+          placeholder="Buscar produto ou copão por nome, categoria ou código..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
         />
         {open && results.length > 0 && (
           <div className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-md border bg-popover shadow-lg">
-            {results.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => add(p)}
-                className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-accent"
-              >
-                <div>
-                  <p className="font-medium">{p.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {p.category ?? 'Produto'} ·{' '}
-                    <span className={p.currentStock <= 0 ? 'text-destructive' : ''}>
-                      {p.currentStock} {p.unit}
-                    </span>
-                  </p>
-                </div>
-                <span className="text-base font-semibold text-primary">
-                  {formatBRL(p.salePrice)}
-                </span>
-              </button>
-            ))}
+            {results.map((hit) =>
+              hit.kind === 'product' ? (
+                <button
+                  key={`p-${hit.product.id}`}
+                  onClick={() => add(hit)}
+                  className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-accent"
+                >
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">{hit.product.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {hit.product.category ?? 'Produto'} ·{' '}
+                        <span className={hit.product.currentStock <= 0 ? 'text-destructive' : ''}>
+                          {hit.product.currentStock} {hit.product.unit}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-base font-semibold text-primary">
+                    {formatBRL(hit.product.salePrice)}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  key={`r-${hit.recipe.id}`}
+                  onClick={() => add(hit)}
+                  className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-accent"
+                >
+                  <div className="flex items-center gap-2">
+                    <GlassWater className="h-4 w-4 text-primary" />
+                    <div>
+                      <p className="font-medium">{hit.recipe.name}</p>
+                      <p className="text-sm text-muted-foreground">Copão · {hit.recipe.totalMl} ml</p>
+                    </div>
+                  </div>
+                  <span className="text-base font-semibold text-primary">
+                    {formatBRL(hit.recipe.salePrice)}
+                  </span>
+                </button>
+              )
+            )}
           </div>
         )}
       </div>
