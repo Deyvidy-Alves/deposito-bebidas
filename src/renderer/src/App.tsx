@@ -3,6 +3,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { DashboardPage } from '@/pages/Dashboard'
+import { MesasPage } from '@/pages/Mesas'
 import { ComingSoon } from '@/components/ComingSoon'
 
 function App(): React.JSX.Element {
@@ -12,10 +13,7 @@ function App(): React.JSX.Element {
         <Routes>
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
-            <Route
-              path="/mesas"
-              element={<ComingSoon title="Mesas" description="Sessões de consumo e pedidos" />}
-            />
+            <Route path="/mesas" element={<MesasPage />} />
             <Route
               path="/clientes"
               element={<ComingSoon title="Clientes" description="Cadastro e saldo devedor" />}
