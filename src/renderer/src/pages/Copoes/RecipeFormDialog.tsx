@@ -30,11 +30,17 @@ interface IngRow {
   amount: number
   bottleMl: number
   costPrice: number
+  salePrice: number
 }
 
+function rowUnits(r: IngRow): number {
+  return r.bottleMl > 0 ? r.amount / r.bottleMl : r.amount
+}
 function rowCost(r: IngRow): number {
-  const units = r.bottleMl > 0 ? r.amount / r.bottleMl : r.amount
-  return units * r.costPrice
+  return rowUnits(r) * r.costPrice
+}
+function rowSale(r: IngRow): number {
+  return rowUnits(r) * r.salePrice
 }
 
 export function RecipeFormDialog({
@@ -75,7 +81,8 @@ export function RecipeFormDialog({
           name: i.productName,
           amount: i.mlUsed,
           bottleMl: i.volumePerUnit || 0,
-          costPrice: 0
+          costPrice: 0,
+          salePrice: 0
         }))
       )
       setPriceMode('direct')
@@ -96,7 +103,12 @@ export function RecipeFormDialog({
       prev.map((r) => {
         const p = products.find((x) => x.id === r.productId)
         return p
-          ? { ...r, costPrice: p.costPrice, bottleMl: r.bottleMl || p.volumePerUnit || 0 }
+          ? {
+              ...r,
+              costPrice: p.costPrice,
+              salePrice: p.salePrice,
+              bottleMl: r.bottleMl || p.volumePerUnit || 0
+            }
           : r
       })
     )
@@ -117,6 +129,7 @@ export function RecipeFormDialog({
   }, [pickId, products])
 
   const cost = useMemo(() => rows.reduce((acc, r) => acc + rowCost(r), 0), [rows])
+  const saleRef = useMemo(() => rows.reduce((acc, r) => acc + rowSale(r), 0), [rows])
   const totalMl = useMemo(
     () => rows.filter((r) => r.bottleMl > 0).reduce((a, r) => a + r.amount, 0),
     [rows]
@@ -149,7 +162,7 @@ export function RecipeFormDialog({
     }
     setRows((prev) => [
       ...prev.filter((r) => r.productId !== id),
-      { productId: id, name: p.name, amount: amt, bottleMl, costPrice: p.costPrice }
+      { productId: id, name: p.name, amount: amt, bottleMl, costPrice: p.costPrice, salePrice: p.salePrice }
     ])
     setPickId('')
     setBottle('')
@@ -344,8 +357,12 @@ export function RecipeFormDialog({
               <p className="text-xs text-muted-foreground">Custo</p>
               <p className="text-lg font-bold">{formatBRL(cost)}</p>
             </div>
+            <div title="Soma dos preços de venda dos insumos (proporcional ao usado)">
+              <p className="text-xs text-muted-foreground">Venda insumos</p>
+              <p className="text-lg font-bold text-muted-foreground">{formatBRL(saleRef)}</p>
+            </div>
             <div>
-              <p className="text-xs text-muted-foreground">Venda</p>
+              <p className="text-xs text-muted-foreground">Venda do copão</p>
               <p className="text-lg font-bold text-primary">{formatBRL(salePreview)}</p>
             </div>
             <div>
@@ -353,6 +370,9 @@ export function RecipeFormDialog({
               <p className="text-lg font-bold text-success">{formatBRL(salePreview - cost)}</p>
             </div>
           </div>
+          <p className="text-center text-xs text-muted-foreground">
+            Dica: para cobrar o preço de balcão (ex.: R$ 15–17), use “Valor direto” e digite o preço.
+          </p>
         </div>
 
         <DialogFooter className="gap-2">
