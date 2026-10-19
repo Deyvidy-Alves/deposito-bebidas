@@ -59,7 +59,7 @@ export function MesasPage(): React.JSX.Element {
               summaries.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => select(t.id)}
+                  onClick={() => select(activeId === t.id ? null : t.id)}
                   className={cn(
                     'w-full rounded-xl border p-3 text-left transition-colors hover:border-primary/50',
                     activeId === t.id ? 'border-primary bg-primary/10' : 'bg-card'

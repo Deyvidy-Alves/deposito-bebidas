@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Trash2, UserPlus, Users, Receipt, DoorClosed } from 'lucide-react'
+import { Trash2, UserPlus, Users, Receipt, DoorClosed, X, Plus, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -21,7 +21,20 @@ import { toast } from 'sonner'
 export function TableDetail({ onRequestClose }: { onRequestClose: () => void }): React.JSX.Element {
   const detail = useTablesStore((s) => s.detail)
   const refreshAll = useTablesStore((s) => s.refreshAll)
+  const select = useTablesStore((s) => s.select)
   const [addOpen, setAddOpen] = useState(false)
+
+  // Esc fecha o detalhe da mesa (quando nenhum diálogo está aberto).
+  useEffect(() => {
+    if (!detail) return
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === 'Escape' && !document.querySelector('[role="dialog"]')) {
+        select(null)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [detail, select])
 
   if (!detail) {
     return (
@@ -41,6 +54,16 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
       toast.success('Item removido.')
     } catch (err) {
       toast.error('Erro ao remover item', { description: (err as Error).message })
+    }
+  }
+
+  async function changeQty(itemId: number, quantity: number): Promise<void> {
+    try {
+      await api.tables.updateItemQuantity(itemId, quantity)
+      await refreshAll()
+    } catch (err) {
+      const msg = (err as Error).message.replace('ESTOQUE_INSUFICIENTE:', '')
+      toast.error('Não foi possível alterar a quantidade', { description: msg })
     }
   }
 
@@ -68,9 +91,19 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
             Aberta em {formatDateTime(detail.createdAt)}
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold text-primary">{formatBRL(detail.total)}</p>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Total</p>
+            <p className="text-2xl font-bold text-primary">{formatBRL(detail.total)}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            title="Fechar (Esc)"
+            onClick={() => select(null)}
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
@@ -139,9 +172,31 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
                   className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-accent/40"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="min-w-8 rounded bg-muted px-2 py-0.5 text-center text-sm font-semibold">
-                      {item.quantity}×
-                    </span>
+                    {isOpen ? (
+                      <div className="flex items-center rounded-md border">
+                        <button
+                          onClick={() => changeQty(item.id, item.quantity - 1)}
+                          className="px-1.5 py-1 text-muted-foreground hover:text-foreground"
+                          title="Diminuir"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="min-w-7 text-center text-sm font-semibold">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => changeQty(item.id, item.quantity + 1)}
+                          className="px-1.5 py-1 text-muted-foreground hover:text-foreground"
+                          title="Aumentar"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="min-w-8 rounded bg-muted px-2 py-0.5 text-center text-sm font-semibold">
+                        {item.quantity}×
+                      </span>
+                    )}
                     <div>
                       <p className="font-medium">{item.description}</p>
                       <p className="text-sm text-muted-foreground">
@@ -155,6 +210,7 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
                       <button
                         onClick={() => removeItem(item.id)}
                         className="text-muted-foreground hover:text-destructive"
+                        title="Remover"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
