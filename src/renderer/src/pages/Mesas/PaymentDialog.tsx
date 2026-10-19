@@ -67,6 +67,7 @@ export function PaymentDialog({
         .then((c) => setFiscalEnabled(c.enabled))
         .catch(() => setFiscalEnabled(false))
       setEmitInvoice(false)
+      setReceived('')
     }
   }, [open])
 
@@ -95,10 +96,15 @@ export function PaymentDialog({
     setRows((prev) => prev.map((r) => ({ ...r, include: true, method: 'credit' })))
   }
 
+  const [received, setReceived] = useState('')
+
   const selectedTotal = useMemo(
     () => rows.filter((r) => r.include).reduce((acc, r) => acc + r.amount, 0),
     [rows]
   )
+
+  const hasCash = rows.some((r) => r.include && (r.method === 'cash' || r.method === 'mixed'))
+  const change = (Number(received.replace(',', '.')) || 0) - selectedTotal
 
   async function confirm(): Promise<void> {
     const toSettle = rows.filter((r) => r.include)
@@ -225,6 +231,33 @@ export function PaymentDialog({
             ))}
           </div>
         </ScrollArea>
+
+        {hasCash && (
+          <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base text-muted-foreground">Valor recebido (dinheiro)</span>
+              <Input
+                type="number"
+                step="0.01"
+                className="w-32"
+                value={received}
+                onChange={(e) => setReceived(e.target.value)}
+                placeholder="0,00"
+              />
+            </div>
+            {received && (
+              <span className="text-base">
+                Troco:{' '}
+                <span className={`font-bold ${change >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {formatBRL(Math.max(0, change))}
+                </span>
+                {change < 0 && (
+                  <span className="ml-2 text-sm text-destructive">faltam {formatBRL(-change)}</span>
+                )}
+              </span>
+            )}
+          </div>
+        )}
 
         {fiscalEnabled && (
           <label className="flex items-center gap-2 rounded-lg border p-3 text-base">
