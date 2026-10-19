@@ -26,7 +26,7 @@ servidor externo.
 3. **Clientes** — CRUD, saldo devedor calculado, histórico de mesas e pagamentos.
 4. **Abatimento inteligente** — distribui o valor pago pelas mesas devedoras (da menor para a maior) até esgotar o crédito.
 5. **Pagamentos & Crediário** — pagamento por participante (dinheiro/PIX/cartão/crediário/misto), "todos no crediário", fechamento parcial.
-6. **Copões** — receitas com cálculo de custo proporcional por ML e preço por margem ou valor direto; baixa dos insumos ao vender.
+6. **Receitas (Fichas Técnicas)** — copões, drinks, doses, combos e porções com cálculo de custo proporcional por ML, preço por margem ou valor direto, filtro por tipo e duplicação; baixa dos insumos ao vender.
 7. **Estoque** — produtos (un/ml/kg), entradas, ajustes com motivo, histórico de movimentações e alertas de mínimo.
 8. **Financeiro** (restrito por senha) — faturamento, CMV, lucro bruto/líquido, despesas, relatórios e exportação.
 9. **Fiscal** (opcional, desativado por padrão) — estrutura de emissão de nota via API REST e hook para SAT/MFE.
