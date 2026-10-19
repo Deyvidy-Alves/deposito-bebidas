@@ -7,13 +7,15 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { NewTableDialog } from './NewTableDialog'
 import { TableDetail } from './TableDetail'
+import { PaymentDialog } from './PaymentDialog'
 import { useTablesStore } from '@/stores/tables'
 import { cn, formatBRL } from '@/lib/utils'
-import { toast } from 'sonner'
 
 export function MesasPage(): React.JSX.Element {
-  const { summaries, filter, activeId, setFilter, loadSummaries, select } = useTablesStore()
+  const { summaries, filter, activeId, detail, setFilter, loadSummaries, select, refreshAll } =
+    useTablesStore()
   const [newOpen, setNewOpen] = useState(false)
+  const [payOpen, setPayOpen] = useState(false)
   const location = useLocation()
 
   useEffect(() => {
@@ -89,13 +91,7 @@ export function MesasPage(): React.JSX.Element {
 
       {/* Detalhe */}
       <div className="flex-1">
-        <TableDetail
-          onRequestClose={() =>
-            toast.info('Fechamento e pagamento', {
-              description: 'Disponível no módulo de Pagamentos.'
-            })
-          }
-        />
+        <TableDetail onRequestClose={() => setPayOpen(true)} />
       </div>
 
       <NewTableDialog
@@ -105,6 +101,13 @@ export function MesasPage(): React.JSX.Element {
           loadSummaries()
           select(id)
         }}
+      />
+
+      <PaymentDialog
+        detail={detail}
+        open={payOpen}
+        onOpenChange={setPayOpen}
+        onDone={refreshAll}
       />
     </div>
   )
