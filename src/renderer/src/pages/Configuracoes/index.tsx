@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { api } from '@/lib/api'
+import { useSettingsStore } from '@/stores/settings'
 import type { FiscalConfig } from '@shared/types'
 import { toast } from 'sonner'
 
@@ -21,6 +22,7 @@ export function ConfiguracoesPage(): React.JSX.Element {
   })
   const [savingGeneral, setSavingGeneral] = useState(false)
   const [savingFiscal, setSavingFiscal] = useState(false)
+  const applyStoreName = useSettingsStore((s) => s.setStoreName)
 
   useEffect(() => {
     api.settings.get('store_name').then((v) => setStoreName(v ?? ''))
@@ -31,6 +33,7 @@ export function ConfiguracoesPage(): React.JSX.Element {
     setSavingGeneral(true)
     try {
       await api.settings.set('store_name', storeName.trim())
+      applyStoreName(storeName.trim()) // reflete na sidebar e no título na hora
       toast.success('Configurações salvas.')
     } catch (err) {
       toast.error('Erro ao salvar', { description: (err as Error).message })

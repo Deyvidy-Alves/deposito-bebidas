@@ -1,19 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Beer } from 'lucide-react'
 import { NAV_ITEMS } from '@/config/nav'
-import { api } from '@/lib/api'
+import { useSettingsStore } from '@/stores/settings'
 import { cn } from '@/lib/utils'
 
 export function Sidebar(): React.JSX.Element {
-  const [storeName, setStoreName] = useState('Depósito')
+  const storeName = useSettingsStore((s) => s.storeName)
+  const load = useSettingsStore((s) => s.load)
 
   useEffect(() => {
-    api.settings
-      .get('store_name')
-      .then((v) => v && setStoreName(v))
-      .catch(() => {})
-  }, [])
+    load()
+  }, [load])
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col border-r bg-card">
