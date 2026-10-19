@@ -1,0 +1,40 @@
+# Configuração de empacotamento (electron-builder).
+# Gera o instalador Windows com: migrations embarcadas em resources e o módulo
+# nativo better-sqlite3 desempacotado do asar (senão o app quebra no boot).
+appId: com.deyvidy.depositobebidas
+productName: Deposito
+
+directories:
+  output: dist
+  buildResources: build
+
+# Arquivos da aplicação (as dependências de produção do node_modules são
+# incluídas automaticamente pelo electron-builder).
+files:
+  - out/**/*
+  - package.json
+
+# Copia a pasta de migrations para resources/migrations — é onde o app procura
+# quando empacotado (ver resolveMigrationsFolder em src/main/database/index.ts).
+extraResources:
+  - from: src/main/database/migrations
+    to: migrations
+    filter:
+      - '**/*'
+
+# Módulo nativo precisa ficar FORA do asar para ser carregável.
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**'
+
+win:
+  target:
+    - nsis
+  artifactName: ${productName}-${version}-Setup.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Deposito

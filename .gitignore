@@ -4,11 +4,16 @@ node_modules/
 # Build / saída
 out/
 dist/
-build/
 .vite/
+
+# Recursos de empacotamento: ignora a pasta build/, mas versiona os ícones
+build/*
+!build/icon.ico
+!build/icon.png
 
 # Banco de dados local (gerado em runtime)
 *.db
+*.db.bak
 *.db-journal
 *.db-shm
 *.db-wal
