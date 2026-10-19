@@ -91,7 +91,7 @@ export function DashboardPage(): React.JSX.Element {
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
             {/* Mesas abertas */}
             <section className="xl:col-span-2">
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3 flex items-center gap-2">
                 <h2 className="text-lg font-semibold">Mesas abertas</h2>
                 <Badge variant="secondary">{openTables.length}</Badge>
               </div>
@@ -136,7 +136,7 @@ export function DashboardPage(): React.JSX.Element {
 
             {/* Estoque baixo */}
             <section>
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3 flex items-center gap-2">
                 <h2 className="text-lg font-semibold">Estoque baixo</h2>
                 <Badge variant={lowStock.length > 0 ? 'destructive' : 'secondary'}>
                   {lowStock.length}
