@@ -20,28 +20,21 @@ import {
 } from '@/components/ui/select'
 import { api } from '@/lib/api'
 import { formatBRL } from '@/lib/utils'
-import type { CopaRecipeWithIngredients, Product, ProductUnit } from '@shared/types'
+import type { CopaRecipeWithIngredients, Product } from '@shared/types'
 import { toast } from 'sonner'
 
+// bottleMl > 0 => medido por dose (ml); bottleMl = 0 => medido por unidade (ex.: gelo)
 interface IngRow {
   productId: number
   name: string
-  mlUsed: number
+  amount: number
+  bottleMl: number
   costPrice: number
-  volumePerUnit: number
-  unit: ProductUnit
 }
 
-/** Unidades de estoque consumidas por copão (igual ao backend). */
-function stockUnits(unit: ProductUnit, volumePerUnit: number, amount: number): number {
-  if (unit === 'ml') return amount
-  if (volumePerUnit > 0) return amount / volumePerUnit
-  return amount
-}
-
-/** True quando o insumo é medido em ML (líquido). */
-function isLiquid(unit: ProductUnit, volumePerUnit: number): boolean {
-  return unit === 'ml' || volumePerUnit > 0
+function rowCost(r: IngRow): number {
+  const units = r.bottleMl > 0 ? r.amount / r.bottleMl : r.amount
+  return units * r.costPrice
 }
 
 export function RecipeFormDialog({
@@ -59,64 +52,75 @@ export function RecipeFormDialog({
   const [name, setName] = useState('')
   const [rows, setRows] = useState<IngRow[]>([])
   const [pickId, setPickId] = useState('')
-  const [pickMl, setPickMl] = useState('')
+  const [measure, setMeasure] = useState<'dose' | 'unit'>('dose')
+  const [bottle, setBottle] = useState('')
+  const [amount, setAmount] = useState('')
   const [priceMode, setPriceMode] = useState<'margin' | 'direct'>('margin')
   const [margin, setMargin] = useState('100')
   const [directPrice, setDirectPrice] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (open) {
-      api.products.list().then(setProducts).catch(() => setProducts([]))
-      setName(recipe?.name ?? '')
-      setPickId('')
-      setPickMl('')
-      if (recipe) {
-        setRows(
-          recipe.ingredients.map((i) => ({
-            productId: i.productId,
-            name: i.productName,
-            mlUsed: i.mlUsed,
-            costPrice: 0,
-            volumePerUnit: 0,
-            unit: i.unit
-          }))
-        )
-        setPriceMode('direct')
-        setDirectPrice(String(recipe.salePrice))
-        setMargin(String(recipe.marginPct ?? 100))
-      } else {
-        setRows([])
-        setPriceMode('margin')
-        setMargin('100')
-        setDirectPrice('')
-      }
+    if (!open) return
+    api.products.list().then(setProducts).catch(() => setProducts([]))
+    setName(recipe?.name ?? '')
+    setPickId('')
+    setMeasure('dose')
+    setBottle('')
+    setAmount('')
+    if (recipe) {
+      setRows(
+        recipe.ingredients.map((i) => ({
+          productId: i.productId,
+          name: i.productName,
+          amount: i.mlUsed,
+          bottleMl: i.volumePerUnit || 0,
+          costPrice: 0
+        }))
+      )
+      setPriceMode('direct')
+      setDirectPrice(String(recipe.salePrice))
+      setMargin(String(recipe.marginPct ?? 100))
+    } else {
+      setRows([])
+      setPriceMode('margin')
+      setMargin('100')
+      setDirectPrice('')
     }
   }, [open, recipe])
 
-  // Reconcilia custos dos insumos quando a lista de produtos chega (para edição).
+  // Reconcilia custos (e bottleMl padrão) quando a lista de produtos chega.
   useEffect(() => {
     if (products.length === 0) return
     setRows((prev) =>
       prev.map((r) => {
         const p = products.find((x) => x.id === r.productId)
         return p
-          ? { ...r, costPrice: p.costPrice, volumePerUnit: p.volumePerUnit, unit: p.unit }
+          ? { ...r, costPrice: p.costPrice, bottleMl: r.bottleMl || p.volumePerUnit || 0 }
           : r
       })
     )
   }, [products])
 
-  const cost = useMemo(
-    () =>
-      rows.reduce((acc, r) => acc + stockUnits(r.unit, r.volumePerUnit, r.mlUsed) * r.costPrice, 0),
-    [rows]
-  )
-  const totalMl = useMemo(
-    () => rows.filter((r) => isLiquid(r.unit, r.volumePerUnit)).reduce((a, r) => a + r.mlUsed, 0),
-    [rows]
-  )
+  // Ao escolher um produto, sugere o modo e preenche o tamanho conhecido.
+  useEffect(() => {
+    const p = products.find((x) => x.id === Number(pickId))
+    if (!p) return
+    if (p.volumePerUnit > 0) {
+      setMeasure('dose')
+      setBottle(String(p.volumePerUnit))
+    } else {
+      setMeasure('unit')
+      setBottle('')
+    }
+    setAmount('')
+  }, [pickId, products])
 
+  const cost = useMemo(() => rows.reduce((acc, r) => acc + rowCost(r), 0), [rows])
+  const totalMl = useMemo(
+    () => rows.filter((r) => r.bottleMl > 0).reduce((a, r) => a + r.amount, 0),
+    [rows]
+  )
   const salePreview = useMemo(() => {
     if (priceMode === 'direct') return Number(directPrice.replace(',', '.')) || 0
     const m = Number(margin.replace(',', '.')) || 0
@@ -125,31 +129,32 @@ export function RecipeFormDialog({
 
   function addIngredient(): void {
     const id = Number(pickId)
-    const ml = Number(pickMl.replace(',', '.'))
-    if (!id || !(ml > 0)) {
-      toast.warning('Selecione o insumo e informe a quantidade.')
+    const p = products.find((x) => x.id === id)
+    if (!p) {
+      toast.warning('Selecione o insumo.')
       return
     }
-    const p = products.find((x) => x.id === id)
-    if (!p) return
+    const amt = Number(amount.replace(',', '.'))
+    if (!(amt > 0)) {
+      toast.warning('Informe a quantidade usada.')
+      return
+    }
+    let bottleMl = 0
+    if (measure === 'dose') {
+      bottleMl = Number(bottle.replace(',', '.'))
+      if (!(bottleMl > 0)) {
+        toast.warning('Informe o tamanho da garrafa/lata em ml.')
+        return
+      }
+    }
     setRows((prev) => [
       ...prev.filter((r) => r.productId !== id),
-      {
-        productId: id,
-        name: p.name,
-        mlUsed: ml,
-        costPrice: p.costPrice,
-        volumePerUnit: p.volumePerUnit,
-        unit: p.unit
-      }
+      { productId: id, name: p.name, amount: amt, bottleMl, costPrice: p.costPrice }
     ])
     setPickId('')
-    setPickMl('')
+    setBottle('')
+    setAmount('')
   }
-
-  const pickedProduct = products.find((x) => x.id === Number(pickId))
-  const pickLiquid = pickedProduct ? isLiquid(pickedProduct.unit, pickedProduct.volumePerUnit) : true
-  const pickAmountLabel = pickedProduct && !pickLiquid ? `Qtd. (${pickedProduct.unit})` : 'ML usados'
 
   async function save(): Promise<void> {
     if (!name.trim()) {
@@ -164,7 +169,11 @@ export function RecipeFormDialog({
     try {
       const input = {
         name: name.trim(),
-        ingredients: rows.map((r) => ({ productId: r.productId, mlUsed: r.mlUsed })),
+        ingredients: rows.map((r) => ({
+          productId: r.productId,
+          mlUsed: r.amount,
+          bottleMl: r.bottleMl > 0 ? r.bottleMl : null
+        })),
         salePrice: priceMode === 'direct' ? Number(directPrice.replace(',', '.')) : null,
         marginPct: priceMode === 'margin' ? Number(margin.replace(',', '.')) : null
       }
@@ -190,42 +199,76 @@ export function RecipeFormDialog({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Nome do copão *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Copão de Whisky com energético" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex.: Copão de Whisky com energético"
+            />
           </div>
 
           {/* Adicionar insumo */}
-          <div className="flex items-end gap-2 rounded-lg border bg-muted/30 p-3">
-            <div className="flex-1 space-y-1">
-              <Label className="text-xs">Insumo (bebida, gelo, etc.)</Label>
-              <Select value={pickId} onValueChange={setPickId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.length === 0 ? (
-                    <div className="px-2 py-3 text-sm text-muted-foreground">
-                      Nenhum produto cadastrado. Cadastre no Estoque.
-                    </div>
-                  ) : (
-                    products.map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>
-                        {p.name} ·{' '}
-                        {isLiquid(p.unit, p.volumePerUnit)
-                          ? `${formatBRL(p.costPrice)} / ${p.volumePerUnit || '?'}ml`
-                          : `${formatBRL(p.costPrice)} / ${p.unit}`}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+          <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+            <div className="flex items-end gap-2">
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs">Insumo (bebida, energético, gelo…)</Label>
+                <Select value={pickId} onValueChange={setPickId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.length === 0 ? (
+                      <div className="px-2 py-3 text-sm text-muted-foreground">
+                        Nenhum produto. Cadastre no Estoque.
+                      </div>
+                    ) : (
+                      products.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {p.name} · {formatBRL(p.costPrice)}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-36 space-y-1">
+                <Label className="text-xs">Medir por</Label>
+                <Select value={measure} onValueChange={(v) => setMeasure(v as 'dose' | 'unit')}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dose">Dose (ml)</SelectItem>
+                    <SelectItem value="unit">Unidade</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="w-28 space-y-1">
-              <Label className="text-xs">{pickAmountLabel}</Label>
-              <Input type="number" value={pickMl} onChange={(e) => setPickMl(e.target.value)} />
+
+            <div className="flex items-end gap-2">
+              {measure === 'dose' && (
+                <div className="w-40 space-y-1">
+                  <Label className="text-xs">Tamanho da garrafa/lata (ml)</Label>
+                  <Input
+                    type="number"
+                    value={bottle}
+                    onChange={(e) => setBottle(e.target.value)}
+                    placeholder="Ex.: 1000"
+                  />
+                </div>
+              )}
+              <div className="w-32 space-y-1">
+                <Label className="text-xs">{measure === 'dose' ? 'ML usados' : 'Quantidade'}</Label>
+                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              </div>
+              <Button onClick={addIngredient}>
+                <Plus className="h-4 w-4" /> Adicionar
+              </Button>
             </div>
-            <Button onClick={addIngredient}>
-              <Plus className="h-4 w-4" />
-            </Button>
+            {measure === 'dose' && (
+              <p className="text-xs text-muted-foreground">
+                O tamanho da garrafa é lembrado no produto para a baixa de estoque.
+              </p>
+            )}
           </div>
 
           {/* Lista de insumos */}
@@ -236,26 +279,23 @@ export function RecipeFormDialog({
               </p>
             ) : (
               <div className="divide-y">
-                {rows.map((r) => {
-                  const c = stockUnits(r.unit, r.volumePerUnit, r.mlUsed) * r.costPrice
-                  const amountLabel = isLiquid(r.unit, r.volumePerUnit) ? 'ml' : r.unit
-                  return (
-                    <div key={r.productId} className="flex items-center justify-between px-3 py-2">
-                      <div>
-                        <p className="font-medium">{r.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {r.mlUsed} {amountLabel} · custo {formatBRL(c)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setRows((prev) => prev.filter((x) => x.productId !== r.productId))}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                {rows.map((r) => (
+                  <div key={r.productId} className="flex items-center justify-between px-3 py-2">
+                    <div>
+                      <p className="font-medium">{r.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {r.bottleMl > 0 ? `${r.amount} ml (garrafa ${r.bottleMl} ml)` : `${r.amount} un`}{' '}
+                        · custo {formatBRL(rowCost(r))}
+                      </p>
                     </div>
-                  )
-                })}
+                    <button
+                      onClick={() => setRows((prev) => prev.filter((x) => x.productId !== r.productId))}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </ScrollArea>
@@ -291,7 +331,7 @@ export function RecipeFormDialog({
               </div>
             )}
             <div className="space-y-1.5">
-              <Label>Total</Label>
+              <Label>Volume líquido</Label>
               <div className="flex h-10 items-center rounded-md border bg-muted/30 px-3 text-sm">
                 {totalMl} ml
               </div>
