@@ -57,6 +57,18 @@ export function PaymentDialog({
 }): React.JSX.Element {
   const [rows, setRows] = useState<Row[]>([])
   const [saving, setSaving] = useState(false)
+  const [fiscalEnabled, setFiscalEnabled] = useState(false)
+  const [emitInvoice, setEmitInvoice] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      api.fiscal
+        .getConfig()
+        .then((c) => setFiscalEnabled(c.enabled))
+        .catch(() => setFiscalEnabled(false))
+      setEmitInvoice(false)
+    }
+  }, [open])
 
   useEffect(() => {
     if (open && detail) {
@@ -116,6 +128,14 @@ export function PaymentDialog({
           ? 'Mesa fechada!'
           : `Pagamento registrado. ${res.remainingParticipants} participante(s) em aberto.`
       )
+      if (emitInvoice) {
+        try {
+          const inv = await api.fiscal.emit(detail!.id)
+          toast[inv.status === 'error' ? 'error' : 'info'](`Nota fiscal: ${inv.message}`)
+        } catch (err) {
+          toast.error('Erro ao emitir nota', { description: (err as Error).message })
+        }
+      }
       onDone()
       onOpenChange(false)
     } catch (err) {
@@ -205,6 +225,13 @@ export function PaymentDialog({
             ))}
           </div>
         </ScrollArea>
+
+        {fiscalEnabled && (
+          <label className="flex items-center gap-2 rounded-lg border p-3 text-base">
+            <Checkbox checked={emitInvoice} onCheckedChange={(v) => setEmitInvoice(!!v)} />
+            Emitir nota fiscal ao fechar
+          </label>
+        )}
 
         <DialogFooter className="items-center justify-between gap-2 sm:justify-between">
           <span className="text-base">
