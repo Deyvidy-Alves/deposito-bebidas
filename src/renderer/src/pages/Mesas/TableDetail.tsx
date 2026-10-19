@@ -17,7 +17,7 @@ import { BillDialog } from './BillDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useTablesStore } from '@/stores/tables'
 import { api } from '@/lib/api'
-import { formatBRL, formatDateTime } from '@/lib/utils'
+import { formatBRL, formatDateTime, summarizePayments } from '@/lib/utils'
 import type { ClientWithBalance } from '@shared/types'
 import { toast } from 'sonner'
 
@@ -130,35 +130,40 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          {detail.participants.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2"
-            >
-              <div>
-                <p className="font-medium leading-tight">{p.nickname ?? p.name}</p>
-                <p className="text-sm leading-tight text-primary">
-                  {formatBRL(detail.perClientShare[p.id] ?? 0)}
-                </p>
+          {detail.participants.map((p) => {
+            const pays = detail.clientPayments[p.id] ?? []
+            const payLabel = summarizePayments(pays)
+            const isFiado = pays.length > 0 && pays.every((x) => x.method === 'credit')
+            return (
+              <div
+                key={p.id}
+                className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2"
+              >
+                <div>
+                  <p className="font-medium leading-tight">{p.nickname ?? p.name}</p>
+                  <p className="text-sm leading-tight text-primary">
+                    {formatBRL(detail.perClientShare[p.id] ?? 0)}
+                  </p>
+                </div>
+                {p.settled ? (
+                  <Badge variant={isFiado ? 'warning' : 'success'} className="text-xs">
+                    {payLabel || 'pago'}
+                  </Badge>
+                ) : (
+                  isOpen && (
+                    <button
+                      onClick={() =>
+                        setConfirm({ kind: 'participant', id: p.id, label: p.nickname ?? p.name })
+                      }
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )
+                )}
               </div>
-              {p.settled ? (
-                <Badge variant="secondary" className="text-xs">
-                  pago
-                </Badge>
-              ) : (
-                isOpen && (
-                  <button
-                    onClick={() =>
-                      setConfirm({ kind: 'participant', id: p.id, label: p.nickname ?? p.name })
-                    }
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 

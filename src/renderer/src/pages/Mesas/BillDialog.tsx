@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { api } from '@/lib/api'
-import { formatBRL, formatDateTime } from '@/lib/utils'
+import { formatBRL, formatDateTime, summarizePayments } from '@/lib/utils'
 import type { TableDetails } from '@shared/types'
 import { toast } from 'sonner'
 
@@ -79,21 +79,25 @@ export function BillDialog({
                   Divisão por pessoa
                 </p>
                 <div className="space-y-1">
-                  {detail.participants.map((p) => (
-                    <div key={p.id} className="flex items-center justify-between text-base">
-                      <span className="flex items-center gap-2">
-                        {p.nickname ?? p.name}
-                        {p.settled && (
-                          <Badge variant="success" className="text-xs">
-                            pago
-                          </Badge>
-                        )}
-                      </span>
-                      <span className="font-semibold">
-                        {formatBRL(detail.perClientShare[p.id] ?? 0)}
-                      </span>
-                    </div>
-                  ))}
+                  {detail.participants.map((p) => {
+                    const pays = detail.clientPayments[p.id] ?? []
+                    const isFiado = pays.length > 0 && pays.every((x) => x.method === 'credit')
+                    return (
+                      <div key={p.id} className="flex items-center justify-between text-base">
+                        <span className="flex items-center gap-2">
+                          {p.nickname ?? p.name}
+                          {p.settled && (
+                            <Badge variant={isFiado ? 'warning' : 'success'} className="text-xs">
+                              {summarizePayments(pays) || 'pago'}
+                            </Badge>
+                          )}
+                        </span>
+                        <span className="font-semibold">
+                          {formatBRL(detail.perClientShare[p.id] ?? 0)}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </ScrollArea>

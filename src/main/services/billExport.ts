@@ -34,11 +34,24 @@ export function buildBillHtml(tableId: number): string {
     )
     .join('')
 
+  const methodLabel: Record<string, string> = {
+    cash: 'Dinheiro',
+    pix: 'PIX',
+    card: 'Cartão',
+    credit: 'Fiado',
+    mixed: 'Misto'
+  }
   const shareRows = d.participants
     .map((p) => {
       const name = p.nickname ?? p.name
+      const pays = d.clientPayments[p.id] ?? []
+      const methods = Array.from(new Set(pays.map((x) => x.method)))
+      const payTxt =
+        methods.length === 0
+          ? ''
+          : ` <span class="paid">(${methods.length === 1 ? methodLabel[methods[0]] ?? methods[0] : 'Misto'})</span>`
       return `<tr>
-        <td>${name}${p.settled ? ' <span class="paid">(pago)</span>' : ''}</td>
+        <td>${name}${payTxt}</td>
         <td class="r">${formatBRL(d.perClientShare[p.id] ?? 0)}</td>
       </tr>`
     })
