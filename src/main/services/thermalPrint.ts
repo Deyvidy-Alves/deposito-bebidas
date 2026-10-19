@@ -38,7 +38,7 @@ function buildReceipt(tableId: number): PosPrintData[] {
   const store = SettingsService.get('store_name') ?? 'Deposito'
   const title = d.label ?? `Mesa #${d.id}`
   const is58 = (SettingsService.get('thermal_width') || '80mm') === '58mm'
-  const cols = is58 ? 32 : 44 // caracteres por linha conforme o papel
+  const cols = is58 ? 30 : 40 // caracteres por linha conforme o papel
 
   const mono = { fontFamily: "'Courier New', monospace", fontSize: is58 ? '11px' : '12px' }
   const center = { ...mono, textAlign: 'center' as const }
