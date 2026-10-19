@@ -1,48 +1,35 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-.kotlin
+# Dependências
+node_modules/
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
-*.iml
-*.ipr
-.idea/
-
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# Build / saída
+out/
+dist/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+.vite/
 
-### VS Code ###
-.vscode/
-
-### Mac OS ###
-.DS_Store
-
-# Arquivos compilados do Maven
-target/
-
-# O Banco de Dados SQLite (MUITO IMPORTANTE)
+# Banco de dados local (gerado em runtime)
 *.db
+*.db-journal
 *.sqlite
+
+# Relatórios gerados
+Relatorios_Gerados/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Ambiente
+.env
+.env.local
+
+# Ferramentas de IA / assistente
+.claude/
+
+# IDE / SO
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
