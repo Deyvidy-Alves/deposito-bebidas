@@ -75,17 +75,28 @@ export const DashboardService = {
       received: 0,
       pendingCredit: 0
     }
+    let mixed = 0
     for (const r of payRows) {
       if (r.method === 'cash') cash.cash += r.total
       else if (r.method === 'pix') cash.pix += r.total
       else if (r.method === 'card') cash.card += r.total
-      else if (r.method === 'credit') cash.credit += r.total
+      else if (r.method === 'mixed') mixed += r.total
     }
-    cash.received = round2(cash.cash + cash.pix + cash.card)
+    // Entrou de verdade no caixa (crediário não conta como recebido).
+    cash.received = round2(cash.cash + cash.pix + cash.card + mixed)
     cash.cash = round2(cash.cash)
     cash.pix = round2(cash.pix)
     cash.card = round2(cash.card)
-    cash.credit = round2(cash.credit)
+
+    // Vendas fiado de hoje (cobranças no crediário).
+    const creditTodayRow = db
+      .select({
+        v: sql<number>`coalesce(sum(${creditTransactions.amount}), 0)`
+      })
+      .from(creditTransactions)
+      .where(sql`${creditTransactions.type} = 'charge' and date(${creditTransactions.createdAt}) = ${today}`)
+      .get()
+    cash.credit = round2(creditTodayRow?.v ?? 0)
 
     // Saldo devedor total = cobranças - pagamentos de crediário
     const debtRow = db
