@@ -45,9 +45,16 @@ export function DashboardPage(): React.JSX.Element {
 
   const { cash, openTables, lowStock } = data
 
+  const hoje = new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long'
+  }).format(new Date())
+  const dataLabel = hoje.charAt(0).toUpperCase() + hoje.slice(1)
+
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Início" description="Visão geral do dia">
+      <PageHeader title="Início" description={dataLabel}>
         <Button onClick={() => navigate('/mesas', { state: { newTable: true } })}>
           <Plus /> Nova mesa <span className="ml-1 opacity-60">F2</span>
         </Button>

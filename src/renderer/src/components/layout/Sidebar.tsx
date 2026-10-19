@@ -1,17 +1,28 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Beer } from 'lucide-react'
 import { NAV_ITEMS } from '@/config/nav'
+import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 export function Sidebar(): React.JSX.Element {
+  const [storeName, setStoreName] = useState('Depósito')
+
+  useEffect(() => {
+    api.settings
+      .get('store_name')
+      .then((v) => v && setStoreName(v))
+      .catch(() => {})
+  }, [])
+
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col border-r bg-card">
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
           <Beer className="h-6 w-6" />
         </div>
         <div className="leading-tight">
-          <p className="text-base font-bold">Depósito</p>
+          <p className="line-clamp-1 text-base font-bold">{storeName}</p>
           <p className="text-xs text-muted-foreground">Gestão & Crediário</p>
         </div>
       </div>
