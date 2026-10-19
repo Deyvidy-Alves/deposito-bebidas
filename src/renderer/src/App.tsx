@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { DashboardPage } from '@/pages/Dashboard'
 import { MesasPage } from '@/pages/Mesas'
+import { ClientesPage } from '@/pages/Clientes'
 import { ComingSoon } from '@/components/ComingSoon'
 
 function App(): React.JSX.Element {
@@ -14,10 +15,7 @@ function App(): React.JSX.Element {
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/mesas" element={<MesasPage />} />
-            <Route
-              path="/clientes"
-              element={<ComingSoon title="Clientes" description="Cadastro e saldo devedor" />}
-            />
+            <Route path="/clientes" element={<ClientesPage />} />
             <Route
               path="/estoque"
               element={<ComingSoon title="Estoque" description="Produtos e movimentações" />}
