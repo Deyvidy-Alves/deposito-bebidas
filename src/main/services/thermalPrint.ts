@@ -24,51 +24,68 @@ export async function listPrinters(): Promise<{ name: string; displayName: strin
   return printers.map((p) => ({ name: p.name, displayName: p.displayName || p.name }))
 }
 
+/** Monta uma linha "esquerda ........ direita" com largura fixa (monoespaçada). */
+function fitLine(left: string, right: string, width: number): string {
+  const maxLeft = Math.max(0, width - right.length - 1)
+  const l = left.length > maxLeft ? left.slice(0, maxLeft) : left
+  const pad = Math.max(1, width - l.length - right.length)
+  return l + ' '.repeat(pad) + right
+}
+
 /** Monta os elementos da comanda térmica (ESC/POS via electron-pos-printer). */
 function buildReceipt(tableId: number): PosPrintData[] {
   const d = TablesService.getDetails(tableId)
   const store = SettingsService.get('store_name') ?? 'Deposito'
   const title = d.label ?? `Mesa #${d.id}`
+  const is58 = (SettingsService.get('thermal_width') || '80mm') === '58mm'
+  const cols = is58 ? 32 : 44 // caracteres por linha conforme o papel
+
+  const mono = { fontFamily: "'Courier New', monospace", fontSize: is58 ? '11px' : '12px' }
+  const center = { ...mono, textAlign: 'center' as const }
+  const sep = '-'.repeat(cols)
 
   const data: PosPrintData[] = [
-    { type: 'text', value: store, style: { fontWeight: 'bold', textAlign: 'center', fontSize: '20px' } },
-    { type: 'text', value: `Comanda - ${title}`, style: { textAlign: 'center', fontSize: '12px' } },
-    { type: 'text', value: '--------------------------------', style: { textAlign: 'center' } }
+    { type: 'text', value: store, style: { ...center, fontWeight: 'bold', fontSize: '15px' } },
+    { type: 'text', value: `Comanda - ${title}`, style: center },
+    { type: 'text', value: sep, style: center }
   ]
 
-  // Itens
-  data.push({
-    type: 'table',
-    style: { width: '100%', fontSize: '12px' },
-    tableHeader: ['Qtd', 'Item', 'Valor'],
-    tableBody: d.items.map((i) => [`${i.quantity}x`, i.description, formatBRL(i.subtotal)]),
-    tableHeaderStyle: { fontWeight: 'bold', textAlign: 'left' },
-    tableBodyStyle: { textAlign: 'left' }
-  })
-
-  data.push({ type: 'text', value: '--------------------------------', style: { textAlign: 'center' } })
-
-  // Divisao por pessoa
-  data.push({ type: 'text', value: 'DIVISAO POR PESSOA', style: { fontWeight: 'bold', fontSize: '12px' } })
-  for (const p of d.participants) {
-    const pays = d.clientPayments[p.id] ?? []
-    const methods = Array.from(new Set(pays.map((x) => x.method)))
-    const mTxt = methods.length === 0 ? '' : methods.length === 1 ? ` (${METHOD_LABEL[methods[0]] ?? methods[0]})` : ' (Misto)'
+  // Itens — "2x Gin Invictus .......... R$ 90,00"
+  for (const i of d.items) {
     data.push({
       type: 'text',
-      value: `${p.nickname ?? p.name}${mTxt}: ${formatBRL(d.perClientShare[p.id] ?? 0)}`,
-      style: { fontSize: '12px' }
+      value: fitLine(`${i.quantity}x ${i.description}`, formatBRL(i.subtotal), cols),
+      style: mono
     })
   }
 
-  data.push({ type: 'text', value: '--------------------------------', style: { textAlign: 'center' } })
+  data.push({ type: 'text', value: sep, style: center })
+  data.push({ type: 'text', value: 'DIVISAO POR PESSOA', style: { ...mono, fontWeight: 'bold' } })
+
+  for (const p of d.participants) {
+    const pays = d.clientPayments[p.id] ?? []
+    const methods = Array.from(new Set(pays.map((x) => x.method)))
+    const mTxt =
+      methods.length === 0
+        ? ''
+        : methods.length === 1
+          ? ` (${METHOD_LABEL[methods[0]] ?? methods[0]})`
+          : ' (Misto)'
+    data.push({
+      type: 'text',
+      value: fitLine(`${p.nickname ?? p.name}${mTxt}`, formatBRL(d.perClientShare[p.id] ?? 0), cols),
+      style: mono
+    })
+  }
+
+  data.push({ type: 'text', value: sep, style: center })
   data.push({
     type: 'text',
     value: `TOTAL: ${formatBRL(d.total)}`,
-    style: { fontWeight: 'bold', textAlign: 'right', fontSize: '16px' }
+    style: { ...center, fontWeight: 'bold', fontSize: '15px' }
   })
-  data.push({ type: 'text', value: ' ', style: {} })
-  data.push({ type: 'text', value: store, style: { textAlign: 'center', fontSize: '10px' } })
+  data.push({ type: 'text', value: ' ', style: mono })
+  data.push({ type: 'text', value: 'Obrigado!', style: { ...center, fontSize: '10px' } })
 
   return data
 }
