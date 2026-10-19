@@ -18,6 +18,7 @@ import { applyStockMovement } from './products'
 import type {
   AddItemInput,
   CreateTableInput,
+  PaymentMethod,
   ProductUnit,
   TableDetails,
   TableParticipant,
@@ -192,7 +193,29 @@ export const TablesService = {
         : round2(consumption[p.id] ?? 0)
     }
 
-    return { ...t, participants, items, total, perClientShare, itemSplits }
+    // Como cada participante liquidou: pagamentos reais + cobranças de crediário (fiado).
+    const clientPayments: Record<number, { method: PaymentMethod; amount: number }[]> = {}
+    const payRows = db
+      .select({ clientId: payments.clientId, method: payments.method, amount: payments.amount })
+      .from(payments)
+      .where(eq(payments.tableId, tableId))
+      .all()
+    for (const r of payRows) {
+      if (r.clientId == null) continue
+      ;(clientPayments[r.clientId] ??= []).push({ method: r.method, amount: round2(r.amount) })
+    }
+    const creditRows = db
+      .select({ clientId: creditTransactions.clientId, amount: creditTransactions.amount })
+      .from(creditTransactions)
+      .where(
+        and(eq(creditTransactions.tableId, tableId), eq(creditTransactions.type, 'charge'))
+      )
+      .all()
+    for (const r of creditRows) {
+      ;(clientPayments[r.clientId] ??= []).push({ method: 'credit', amount: round2(r.amount) })
+    }
+
+    return { ...t, participants, items, total, perClientShare, itemSplits, clientPayments }
   },
 
   addClient(tableId: number, clientId: number): void {

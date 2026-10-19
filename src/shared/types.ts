@@ -136,6 +136,8 @@ export interface TableDetails extends TableEntity {
   perClientShare: Record<number, number>
   /** Como cada item é dividido (itemId → quem pegou e quanto). Vazio = todos igual. */
   itemSplits: Record<number, ItemSplitEntry[]>
+  /** Como cada participante liquidou (clientId → formas e valores). */
+  clientPayments: Record<number, { method: PaymentMethod; amount: number }[]>
 }
 
 /** Resumo de mesa para cards do dashboard / listagens. */
