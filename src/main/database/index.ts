@@ -24,8 +24,7 @@ function resolveMigrationsFolder(): string {
   const candidates = [
     join(process.resourcesPath ?? '', 'migrations'),
     join(app.getAppPath(), 'src/main/database/migrations'),
-    join(app.getAppPath(), 'out/migrations'),
-    join(__dirname, 'migrations')
+    join(app.getAppPath(), 'out/migrations')
   ]
   return candidates.find((p) => p && existsSync(p)) ?? candidates[1]
 }

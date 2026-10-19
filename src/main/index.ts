@@ -1,8 +1,12 @@
 import { app, shell, BrowserWindow } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initDatabase, closeDatabase } from './database'
 import { registerIpc } from './ipc'
+
+// O bundle do processo principal é ESM; __dirname não existe nesse contexto.
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
