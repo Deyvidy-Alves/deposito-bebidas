@@ -5,6 +5,7 @@ import { searchRoutes } from './services/search'
 import { clientsRoutes } from './services/clients'
 import { productsRoutes } from './services/products'
 import { tablesRoutes } from './services/tables'
+import { billExportRoutes } from './services/billExport'
 import { paymentsRoutes } from './services/payments'
 import { creditRoutes } from './services/credit'
 import { copaRoutes } from './services/copa'
@@ -23,6 +24,7 @@ const routes: RouteMap = {
   ...clientsRoutes,
   ...productsRoutes,
   ...tablesRoutes,
+  ...billExportRoutes,
   ...paymentsRoutes,
   ...creditRoutes,
   ...copaRoutes,
