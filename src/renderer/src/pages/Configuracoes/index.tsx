@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Save, Store, Receipt } from 'lucide-react'
+import { Save, Store, Receipt, Printer } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { api } from '@/lib/api'
@@ -22,12 +29,32 @@ export function ConfiguracoesPage(): React.JSX.Element {
   })
   const [savingGeneral, setSavingGeneral] = useState(false)
   const [savingFiscal, setSavingFiscal] = useState(false)
+  const [printerName, setPrinterName] = useState('')
+  const [printerWidth, setPrinterWidth] = useState('80mm')
+  const [printers, setPrinters] = useState<{ name: string; displayName: string }[]>([])
+  const [savingPrinter, setSavingPrinter] = useState(false)
   const applyStoreName = useSettingsStore((s) => s.setStoreName)
 
   useEffect(() => {
     api.settings.get('store_name').then((v) => setStoreName(v ?? ''))
     api.fiscal.getConfig().then(setFiscal).catch(() => {})
+    api.settings.get('thermal_printer_name').then((v) => setPrinterName(v ?? ''))
+    api.settings.get('thermal_width').then((v) => setPrinterWidth(v || '80mm'))
+    api.print.listPrinters().then(setPrinters).catch(() => setPrinters([]))
   }, [])
+
+  async function savePrinter(): Promise<void> {
+    setSavingPrinter(true)
+    try {
+      await api.settings.set('thermal_printer_name', printerName)
+      await api.settings.set('thermal_width', printerWidth)
+      toast.success('Impressora salva.')
+    } catch (err) {
+      toast.error('Erro ao salvar', { description: (err as Error).message })
+    } finally {
+      setSavingPrinter(false)
+    }
+  }
 
   async function saveGeneral(): Promise<void> {
     setSavingGeneral(true)
@@ -74,6 +101,52 @@ export function ConfiguracoesPage(): React.JSX.Element {
               </div>
               <Button onClick={saveGeneral} disabled={savingGeneral}>
                 <Save className="h-4 w-4" /> Salvar
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Impressão */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Printer className="h-5 w-5" /> Impressão da comanda
+              </CardTitle>
+              <CardDescription className="text-base">
+                Impressora térmica (ESC/POS). Sem impressora definida, a comanda abre em
+                pré-visualização.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Impressora</Label>
+                <Select value={printerName || '__none__'} onValueChange={(v) => setPrinterName(v === '__none__' ? '' : v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pré-visualização (sem impressora)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Pré-visualização (sem impressora)</SelectItem>
+                    {printers.map((p) => (
+                      <SelectItem key={p.name} value={p.name}>
+                        {p.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Largura do papel</Label>
+                <Select value={printerWidth} onValueChange={setPrinterWidth}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="80mm">80 mm</SelectItem>
+                    <SelectItem value="58mm">58 mm</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={savePrinter} disabled={savingPrinter}>
+                <Save className="h-4 w-4" /> Salvar impressora
               </Button>
             </CardContent>
           </Card>
