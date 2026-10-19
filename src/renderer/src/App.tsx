@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { DashboardPage } from '@/pages/Dashboard'
 import { MesasPage } from '@/pages/Mesas'
 import { ClientesPage } from '@/pages/Clientes'
+import { EstoquePage } from '@/pages/Estoque'
 import { ComingSoon } from '@/components/ComingSoon'
 
 function App(): React.JSX.Element {
@@ -16,10 +17,7 @@ function App(): React.JSX.Element {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/mesas" element={<MesasPage />} />
             <Route path="/clientes" element={<ClientesPage />} />
-            <Route
-              path="/estoque"
-              element={<ComingSoon title="Estoque" description="Produtos e movimentações" />}
-            />
+            <Route path="/estoque" element={<EstoquePage />} />
             <Route
               path="/copoes"
               element={<ComingSoon title="Copões" description="Receitas de bebidas" />}
