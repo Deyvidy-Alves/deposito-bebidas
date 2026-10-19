@@ -86,7 +86,12 @@ export const api = {
     setItemSplit: (itemId: number, splits: { clientId: number; quantity: number }[]) =>
       invoke<void>('tables:setItemSplit', { itemId, splits }),
     removeItem: (itemId: number) => invoke<void>('tables:removeItem', itemId),
-    billPdf: (tableId: number) => invoke<string | null>('tables:billPdf', tableId)
+    billPdf: (tableId: number) => invoke<string | null>('tables:billPdf', tableId),
+    printThermal: (tableId: number) =>
+      invoke<{ ok: boolean; preview: boolean }>('tables:printThermal', tableId)
+  },
+  print: {
+    listPrinters: () => invoke<{ name: string; displayName: string }[]>('print:listPrinters')
   },
   payments: {
     closeTable: (input: CloseTableInput) => invoke<CloseTableResult>('payments:closeTable', input)
