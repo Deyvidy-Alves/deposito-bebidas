@@ -13,6 +13,28 @@ export function formatBRL(value: number): string {
   }).format(value || 0)
 }
 
+/** Data local no formato YYYY-MM-DD. */
+export function toISODate(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+/** Calcula um período (from/to) para os presets do financeiro. */
+export function periodPreset(kind: 'day' | 'week' | 'month'): { from: string; to: string } {
+  const now = new Date()
+  const to = toISODate(now)
+  if (kind === 'day') return { from: to, to }
+  if (kind === 'week') {
+    const d = new Date(now)
+    d.setDate(d.getDate() - 6)
+    return { from: toISODate(d), to }
+  }
+  const first = new Date(now.getFullYear(), now.getMonth(), 1)
+  return { from: toISODate(first), to }
+}
+
 /** Formata uma data ISO/epoch para dd/mm/aaaa hh:mm. */
 export function formatDateTime(value: string | number | Date): string {
   const d = value instanceof Date ? value : new Date(value)
