@@ -360,6 +360,45 @@ export interface ExpenseInput {
 
 export type ReportKind = 'top-products' | 'sales-by-day' | 'debtors' | 'cash-flow' | 'summary'
 
+// ─────────────────────── Fiscal (opcional) ───────────────────────
+
+export interface FiscalConfig {
+  enabled: boolean
+  providerUrl: string
+  apiToken: string
+  cnpj: string
+}
+
+export interface InvoiceItem {
+  description: string
+  quantity: number
+  unitPrice: number
+  total: number
+}
+
+export interface InvoicePayload {
+  cnpj: string
+  tableId: number
+  customer: { name: string; nickname: string | null } | null
+  items: InvoiceItem[]
+  total: number
+  payments: { method: string; amount: number }[]
+  issuedAt: string
+}
+
+export interface InvoiceResult {
+  status: 'draft' | 'sent' | 'error'
+  message: string
+  payload: InvoicePayload
+}
+
+// ─────────────────────── Configurações ───────────────────────
+
+export interface AppSettings {
+  storeName: string
+  fiscal: FiscalConfig
+}
+
 // ─────────────────────── Busca global ───────────────────────
 
 export type SearchResultKind = 'client' | 'product' | 'table'

@@ -15,6 +15,8 @@ import type {
   DashboardData,
   Debtor,
   DebtorTable,
+  FiscalConfig,
+  InvoiceResult,
   CashFlowDay,
   ExpenseInput,
   Expense,
@@ -111,6 +113,11 @@ export const api = {
     exportCsv: (kind: ReportKind, period: Period) =>
       invoke<string | null>('finance:exportCsv', { kind, period }),
     exportPdf: (period: Period) => invoke<string | null>('finance:exportPdf', period)
+  },
+  fiscal: {
+    getConfig: () => invoke<FiscalConfig>('fiscal:getConfig'),
+    setConfig: (cfg: FiscalConfig) => invoke<void>('fiscal:setConfig', cfg),
+    emit: (tableId: number) => invoke<InvoiceResult>('fiscal:emit', tableId)
   }
 }
 
