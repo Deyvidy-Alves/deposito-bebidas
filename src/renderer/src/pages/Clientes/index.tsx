@@ -176,7 +176,12 @@ export function ClientesPage(): React.JSX.Element {
         client={editing}
         onSaved={load}
       />
-      <ClientDetailDialog clientId={detailId} open={detailOpen} onOpenChange={setDetailOpen} />
+      <ClientDetailDialog
+        clientId={detailId}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onChanged={load}
+      />
       <ConfirmDialog
         open={!!toDelete}
         onOpenChange={(o) => !o && setToDelete(null)}

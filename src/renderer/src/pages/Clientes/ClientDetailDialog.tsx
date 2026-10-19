@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react'
-import { Phone, Wallet } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { CircleDollarSign, Phone, Wallet } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { CreditSettlementDialog } from './CreditSettlementDialog'
 import { api } from '@/lib/api'
 import { formatBRL, formatDateTime } from '@/lib/utils'
 import type { ClientDetail } from '@shared/types'
@@ -17,26 +19,32 @@ import { toast } from 'sonner'
 export function ClientDetailDialog({
   clientId,
   open,
-  onOpenChange
+  onOpenChange,
+  onChanged
 }: {
   clientId: number | null
   open: boolean
   onOpenChange: (o: boolean) => void
+  onChanged?: () => void
 }): React.JSX.Element {
   const [detail, setDetail] = useState<ClientDetail | null>(null)
+  const [settleOpen, setSettleOpen] = useState(false)
+
+  const reload = useCallback(() => {
+    if (clientId == null) return
+    api.clients
+      .detail(clientId)
+      .then(setDetail)
+      .catch((err) => toast.error('Erro ao carregar cliente', { description: err.message }))
+  }, [clientId])
 
   useEffect(() => {
-    if (open && clientId != null) {
-      api.clients
-        .detail(clientId)
-        .then(setDetail)
-        .catch((err) => toast.error('Erro ao carregar cliente', { description: err.message }))
-    } else {
-      setDetail(null)
-    }
-  }, [open, clientId])
+    if (open && clientId != null) reload()
+    else setDetail(null)
+  }, [open, clientId, reload])
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         {detail && (
@@ -64,6 +72,11 @@ export function ClientDetailDialog({
                 <div className="flex items-center gap-2 text-base text-muted-foreground">
                   <Phone className="h-4 w-4" /> {detail.client.phone}
                 </div>
+              )}
+              {detail.debt > 0 && (
+                <Button className="ml-auto" onClick={() => setSettleOpen(true)}>
+                  <CircleDollarSign className="h-4 w-4" /> Abater crédito
+                </Button>
               )}
             </div>
 
@@ -127,6 +140,18 @@ export function ClientDetailDialog({
         )}
       </DialogContent>
     </Dialog>
+
+    <CreditSettlementDialog
+      clientId={clientId}
+      clientName={detail?.client.nickname ?? detail?.client.name ?? ''}
+      open={settleOpen}
+      onOpenChange={setSettleOpen}
+      onDone={() => {
+        reload()
+        onChanged?.()
+      }}
+    />
+    </>
   )
 }
 
