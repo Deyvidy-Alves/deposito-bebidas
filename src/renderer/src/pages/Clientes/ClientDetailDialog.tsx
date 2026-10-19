@@ -83,7 +83,7 @@ export function ClientDetailDialog({
             <Tabs defaultValue="tables" className="mt-2">
               <TabsList className="w-full">
                 <TabsTrigger value="tables" className="flex-1">
-                  Mesas ({detail.tableHistory.length})
+                  Comandas ({detail.tableHistory.length})
                 </TabsTrigger>
                 <TabsTrigger value="payments" className="flex-1">
                   Pagamentos ({detail.payments.length})
@@ -96,10 +96,10 @@ export function ClientDetailDialog({
               <TabsContent value="tables">
                 <ScrollArea className="h-72">
                   <HistoryList
-                    empty="Nenhuma mesa no histórico."
+                    empty="Nenhuma comanda no histórico."
                     rows={detail.tableHistory.map((t) => ({
                       key: t.tableId,
-                      left: t.label ?? `Mesa #${t.tableId}`,
+                      left: t.label ?? `Comanda #${t.tableId}`,
                       sub: `${t.status === 'open' ? 'Aberta' : 'Fechada'} · ${formatDateTime(t.createdAt)}`,
                       right: formatBRL(t.share)
                     }))}

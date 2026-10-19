@@ -131,7 +131,7 @@ export function PaymentDialog({
       const res = await api.payments.closeTable({ tableId: detail!.id, settlements })
       toast.success(
         res.tableClosed
-          ? 'Mesa fechada!'
+          ? 'Comanda fechada!'
           : `Pagamento registrado. ${res.remainingParticipants} participante(s) em aberto.`
       )
       if (emitInvoice) {
@@ -155,12 +155,12 @@ export function PaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Fechamento — {detail?.label ?? `Mesa #${detail?.id}`}</DialogTitle>
+          <DialogTitle>Fechamento — {detail?.label ?? `Comanda #${detail?.id}`}</DialogTitle>
         </DialogHeader>
 
         <div className="flex items-center justify-between">
           <p className="text-base text-muted-foreground">
-            Total da mesa: <span className="font-semibold text-foreground">{formatBRL(detail?.total ?? 0)}</span>
+            Total da comanda: <span className="font-semibold text-foreground">{formatBRL(detail?.total ?? 0)}</span>
           </p>
           <Button variant="outline" size="sm" onClick={allOnCredit}>
             <CreditCard className="h-4 w-4" /> Todos no crediário

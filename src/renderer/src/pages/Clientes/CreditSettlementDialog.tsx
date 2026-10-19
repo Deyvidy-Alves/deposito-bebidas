@@ -138,7 +138,7 @@ export function CreditSettlementDialog({
 
             <div>
               <Label className="mb-2 block">
-                Distribuição (mesas de menor para maior)
+                Distribuição (comandas de menor para maior)
               </Label>
               <ScrollArea className="h-48 rounded-lg border">
                 {debts.length === 0 ? (
@@ -157,7 +157,7 @@ export function CreditSettlementDialog({
                             className="flex items-center justify-between px-3 py-2.5"
                           >
                             <div>
-                              <p className="font-medium">{d.label ?? `Mesa #${d.tableId}`}</p>
+                              <p className="font-medium">{d.label ?? `Comanda #${d.tableId}`}</p>
                               <p className="text-sm text-muted-foreground">
                                 deve {formatBRL(d.outstanding)}
                               </p>
@@ -218,12 +218,12 @@ function SettlementSummary({ result }: { result: CreditSettlementResult }): Reac
 
       {result.fullySettled.length > 0 && (
         <div>
-          <p className="mb-1 text-sm font-semibold text-muted-foreground">Mesas quitadas</p>
+          <p className="mb-1 text-sm font-semibold text-muted-foreground">Comandas quitadas</p>
           <div className="space-y-1">
             {result.fullySettled.map((t) => (
               <div key={t.tableId} className="flex items-center justify-between text-base">
                 <span className="flex items-center gap-1">
-                  {t.label ?? `Mesa #${t.tableId}`} <ArrowRight className="h-4 w-4" />
+                  {t.label ?? `Comanda #${t.tableId}`} <ArrowRight className="h-4 w-4" />
                 </span>
                 <Badge variant="success">{formatBRL(t.amount)}</Badge>
               </div>
@@ -238,7 +238,7 @@ function SettlementSummary({ result }: { result: CreditSettlementResult }): Reac
           <div className="space-y-1">
             {result.partiallySettled.map((t) => (
               <div key={t.tableId} className="flex items-center justify-between text-base">
-                <span>{t.label ?? `Mesa #${t.tableId}`}</span>
+                <span>{t.label ?? `Comanda #${t.tableId}`}</span>
                 <span>
                   <Badge variant="warning">{formatBRL(t.amount)}</Badge>
                   <span className="ml-2 text-sm text-muted-foreground">

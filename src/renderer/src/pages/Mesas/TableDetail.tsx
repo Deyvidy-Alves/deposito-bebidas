@@ -47,7 +47,7 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
         <Receipt className="h-10 w-10" />
-        <p className="text-base">Selecione uma mesa para ver os detalhes.</p>
+        <p className="text-base">Selecione uma comanda para ver os detalhes.</p>
       </div>
     )
   }
@@ -89,7 +89,7 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
       <div className="flex items-start justify-between border-b px-6 py-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold">{detail.label ?? `Mesa #${detail.id}`}</h2>
+            <h2 className="text-xl font-bold">{detail.label ?? `Comanda #${detail.id}`}</h2>
             <Badge variant={isOpen ? 'success' : 'secondary'}>
               {isOpen ? 'Aberta' : 'Fechada'}
             </Badge>
@@ -286,7 +286,7 @@ export function TableDetail({ onRequestClose }: { onRequestClose: () => void }):
         title={confirm?.kind === 'participant' ? 'Remover participante' : 'Remover item'}
         description={
           confirm?.kind === 'participant'
-            ? `Tirar "${confirm?.label}" desta mesa?`
+            ? `Tirar "${confirm?.label}" desta comanda?`
             : `Remover "${confirm?.label}"? O estoque será devolvido.`
         }
         confirmLabel="Remover"

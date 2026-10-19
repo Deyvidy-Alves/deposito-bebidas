@@ -34,7 +34,7 @@ export function MesasPage(): React.JSX.Element {
     <div className="flex h-full">
       {/* Coluna de mesas */}
       <div className="flex w-80 shrink-0 flex-col border-r">
-        <PageHeader title="Mesas">
+        <PageHeader title="Comandas">
           <Button size="sm" onClick={() => setNewOpen(true)}>
             <Plus className="h-4 w-4" /> Nova
           </Button>
@@ -53,7 +53,7 @@ export function MesasPage(): React.JSX.Element {
           <div className="space-y-2 p-3">
             {summaries.length === 0 ? (
               <p className="py-10 text-center text-sm text-muted-foreground">
-                {filter === 'open' ? 'Nenhuma mesa aberta.' : 'Nenhuma mesa fechada.'}
+                {filter === 'open' ? 'Nenhuma comanda aberta.' : 'Nenhuma comanda fechada.'}
               </p>
             ) : (
               summaries.map((t) => (
@@ -66,7 +66,7 @@ export function MesasPage(): React.JSX.Element {
                   )}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold">{t.label ?? `Mesa #${t.id}`}</span>
+                    <span className="font-semibold">{t.label ?? `Comanda #${t.id}`}</span>
                     <span className="font-bold text-primary">{formatBRL(t.total)}</span>
                   </div>
                   <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">

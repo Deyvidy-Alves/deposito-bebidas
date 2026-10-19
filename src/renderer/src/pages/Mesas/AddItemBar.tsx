@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { GlassWater, Minus, Package, Plus, Search } from 'lucide-react'
+import { Minus, Package, Plus, Search } from 'lucide-react'
+import { recipeTypeMeta } from '@/config/recipeTypes'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -139,7 +140,7 @@ export function AddItemBar({
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="pl-9"
-          placeholder="Buscar produto ou copão por nome, categoria ou código..."
+          placeholder="Buscar produto ou receita por nome, categoria ou código..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
@@ -170,22 +171,31 @@ export function AddItemBar({
                   </span>
                 </button>
               ) : (
-                <button
-                  key={`r-${hit.recipe.id}`}
-                  onClick={() => add(hit)}
-                  className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-accent"
-                >
-                  <div className="flex items-center gap-2">
-                    <GlassWater className="h-4 w-4 text-primary" />
-                    <div>
-                      <p className="font-medium">{hit.recipe.name}</p>
-                      <p className="text-sm text-muted-foreground">Copão · {hit.recipe.totalMl} ml</p>
-                    </div>
-                  </div>
-                  <span className="text-base font-semibold text-primary">
-                    {formatBRL(hit.recipe.salePrice)}
-                  </span>
-                </button>
+                (() => {
+                  const meta = recipeTypeMeta(hit.recipe.recipeType)
+                  const Icon = meta.icon
+                  return (
+                    <button
+                      key={`r-${hit.recipe.id}`}
+                      onClick={() => add(hit)}
+                      className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-accent"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-primary" />
+                        <div>
+                          <p className="font-medium">{hit.recipe.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {meta.label}
+                            {hit.recipe.totalMl > 0 ? ` · ${hit.recipe.totalMl} ml` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-base font-semibold text-primary">
+                        {formatBRL(hit.recipe.salePrice)}
+                      </span>
+                    </button>
+                  )
+                })()
               )
             )}
           </div>

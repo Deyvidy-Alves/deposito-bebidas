@@ -59,7 +59,7 @@ export function BillDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5" /> Conta — {detail?.label ?? `Mesa #${detail?.id}`}
+            <Receipt className="h-5 w-5" /> Conta — {detail?.label ?? `Comanda #${detail?.id}`}
           </DialogTitle>
         </DialogHeader>
 

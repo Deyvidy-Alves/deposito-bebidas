@@ -96,11 +96,11 @@ export function NewTableDialog({
         clientIds: [...selected.keys()],
         label: label.trim() || null
       })
-      toast.success('Mesa aberta!')
+      toast.success('Comanda aberta!')
       onCreated(id)
       onOpenChange(false)
     } catch (err) {
-      toast.error('Erro ao abrir mesa', { description: (err as Error).message })
+      toast.error('Erro ao abrir comanda', { description: (err as Error).message })
     } finally {
       setSaving(false)
     }
@@ -110,14 +110,14 @@ export function NewTableDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Nova mesa</DialogTitle>
+          <DialogTitle>Nova comanda</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Rótulo da mesa (opcional)</Label>
+            <Label>Rótulo da comanda (opcional)</Label>
             <Input
-              placeholder="Ex.: Mesa 3, Varanda, Galera do Zé"
+              placeholder="Ex.: Comanda 3, Varanda, Galera do Zé"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />
@@ -215,7 +215,7 @@ export function NewTableDialog({
             Cancelar
           </Button>
           <Button onClick={handleCreate} disabled={saving || selected.size === 0}>
-            Abrir mesa ({selected.size})
+            Abrir comanda ({selected.size})
           </Button>
         </DialogFooter>
       </DialogContent>

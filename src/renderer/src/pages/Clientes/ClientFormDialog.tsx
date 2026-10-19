@@ -36,6 +36,7 @@ export function ClientFormDialog({
   const [name, setName] = useState('')
   const [nickname, setNickname] = useState('')
   const [phone, setPhone] = useState('')
+  const [openingDebt, setOpeningDebt] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export function ClientFormDialog({
       setName(client?.name ?? '')
       setNickname(client?.nickname ?? '')
       setPhone(client?.phone ?? '')
+      setOpeningDebt('')
     }
   }, [open, client])
 
@@ -59,8 +61,12 @@ export function ClientFormDialog({
         nickname: parsed.data.nickname || null,
         phone: parsed.data.phone || null
       }
-      if (client) await api.clients.update(client.id, input)
-      else await api.clients.create(input)
+      if (client) {
+        await api.clients.update(client.id, input)
+      } else {
+        const debt = Number(openingDebt.replace(',', '.')) || 0
+        await api.clients.create({ ...input, openingDebt: debt > 0 ? debt : null })
+      }
       toast.success(client ? 'Cliente atualizado.' : 'Cliente cadastrado.')
       onSaved()
       onOpenChange(false)
@@ -90,6 +96,23 @@ export function ClientFormDialog({
             <Label>Telefone</Label>
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(00) 00000-0000" />
           </div>
+          {!client && (
+            <div className="space-y-1.5 rounded-lg border border-dashed bg-muted/30 p-3">
+              <Label>Saldo devedor anterior (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                value={openingDebt}
+                onChange={(e) => setOpeningDebt(e.target.value)}
+                placeholder="0,00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Opcional. Se o cliente já devia de outro sistema, informe aqui — vira
+                crediário em aberto (comanda “Saldo anterior”).
+              </p>
+            </div>
+          )}
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>

@@ -83,7 +83,7 @@ export function ProductFormDialog({
         name: parsed.data.name,
         category: parsed.data.category || null,
         unit: 'un' as const, // tudo é contado por unidade
-        // O conteúdo em ml é definido no módulo de Copões (quando o produto vira insumo).
+        // O conteúdo em ml é definido no módulo de Receitas (quando o produto vira insumo).
         volumePerUnit: product?.volumePerUnit ?? 0,
         costPrice: parsed.data.costPrice,
         salePrice: parsed.data.salePrice,

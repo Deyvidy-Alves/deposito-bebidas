@@ -20,7 +20,7 @@ interface GlobalSearchProps {
 const KIND_META: Record<SearchResultKind, { label: string; icon: typeof Beer; route: string }> = {
   client: { label: 'Clientes', icon: Users, route: '/clientes' },
   product: { label: 'Produtos', icon: Package, route: '/estoque' },
-  table: { label: 'Mesas', icon: Beer, route: '/mesas' }
+  table: { label: 'Comandas', icon: Beer, route: '/mesas' }
 }
 
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps): React.JSX.Element {
@@ -68,7 +68,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps): React.J
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Buscar cliente, produto ou mesa..."
+        placeholder="Buscar cliente, produto ou comanda..."
         value={query}
         onValueChange={setQuery}
       />
@@ -78,7 +78,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps): React.J
         )}
         {!query.trim() && (
           <div className="py-6 text-center text-sm text-muted-foreground">
-            Digite para buscar em clientes, produtos e mesas.
+            Digite para buscar em clientes, produtos e comandas.
           </div>
         )}
         {grouped.map((g) => {

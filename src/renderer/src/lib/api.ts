@@ -127,6 +127,9 @@ export const api = {
       invoke<string | null>('finance:exportCsv', { kind, period }),
     exportPdf: (period: Period) => invoke<string | null>('finance:exportPdf', period)
   },
+  sync: {
+    pendingCount: () => invoke<number>('sync:pendingCount')
+  },
   fiscal: {
     getConfig: () => invoke<FiscalConfig>('fiscal:getConfig'),
     setConfig: (cfg: FiscalConfig) => invoke<void>('fiscal:setConfig', cfg),

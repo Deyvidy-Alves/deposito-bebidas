@@ -30,31 +30,50 @@
     --radius: 0.65rem;
   }
 
+  :root {
+    /* Marca — usada em logotipo, realces e gradientes (independe do tema) */
+    --brand-from: 158 74% 42%;
+    --brand-to: 142 71% 45%;
+  }
+
   /* Modo escuro é o padrão do sistema (classe .dark no <html>) */
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 8% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 8% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 142 69% 48%;
-    --primary-foreground: 144 80% 6%;
-    --secondary: 240 4% 14%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 14%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 98%;
+    --background: 225 14% 6%;
+    --foreground: 210 20% 98%;
+    --card: 224 13% 9%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 14% 8%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 150 70% 47%;
+    --primary-foreground: 150 85% 6%;
+    --secondary: 223 10% 15%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 223 10% 15%;
+    --muted-foreground: 220 9% 62%;
+    --accent: 223 11% 17%;
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142 69% 48%;
-    --success-foreground: 144 80% 6%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 10%;
-    --border: 240 4% 18%;
-    --input: 240 4% 18%;
-    --ring: 142 69% 48%;
+    --success: 150 70% 47%;
+    --success-foreground: 150 85% 6%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 36 92% 8%;
+    --border: 223 10% 18%;
+    --input: 223 10% 18%;
+    --ring: 150 70% 47%;
+  }
+}
+
+@layer components {
+  /* Gradiente da marca (logotipo, destaques) */
+  .brand-gradient {
+    background-image: linear-gradient(135deg, hsl(var(--brand-from)), hsl(var(--brand-to)));
+  }
+  .brand-text {
+    background-image: linear-gradient(135deg, hsl(var(--brand-from)), hsl(var(--brand-to)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
 

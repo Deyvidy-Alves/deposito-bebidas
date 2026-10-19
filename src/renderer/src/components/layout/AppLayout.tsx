@@ -5,14 +5,18 @@ import { GlobalSearch } from '@/components/GlobalSearch'
 
 export function AppLayout(): React.JSX.Element {
   const [searchOpen, setSearchOpen] = useState(false)
+  const [sidebarHidden, setSidebarHidden] = useState(false)
   const navigate = useNavigate()
 
-  // Atalhos globais: Ctrl+K busca, F3 busca cliente, F2 nova mesa.
+  // Atalhos globais: Ctrl+K busca, Ctrl+B esconde a barra, F3 busca, F2 nova mesa.
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setSearchOpen((v) => !v)
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault()
+        setSidebarHidden((v) => !v)
       } else if (e.key === 'F3') {
         e.preventDefault()
         setSearchOpen(true)
@@ -27,7 +31,7 @@ export function AppLayout(): React.JSX.Element {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
-      <Sidebar />
+      {!sidebarHidden && <Sidebar />}
       <main className="flex-1 overflow-hidden">
         <Outlet />
       </main>

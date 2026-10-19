@@ -107,7 +107,7 @@ export function ClientesPage(): React.JSX.Element {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>Mesas abertas</TableHead>
+                  <TableHead>Comandas abertas</TableHead>
                   <TableHead className="text-right">Saldo devedor</TableHead>
                   <TableHead className="w-24 text-right">Ações</TableHead>
                 </TableRow>

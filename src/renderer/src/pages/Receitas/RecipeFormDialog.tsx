@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/select'
 import { api } from '@/lib/api'
 import { formatBRL } from '@/lib/utils'
-import type { CopaRecipeWithIngredients, Product } from '@shared/types'
+import { RECIPE_TYPES } from '@/config/recipeTypes'
+import type { CopaRecipeWithIngredients, Product, RecipeType } from '@shared/types'
 import { toast } from 'sonner'
 
 // bottleMl > 0 => medido por dose (ml); bottleMl = 0 => medido por unidade (ex.: gelo)
@@ -47,15 +48,19 @@ export function RecipeFormDialog({
   open,
   onOpenChange,
   recipe,
+  defaultType = 'copao',
   onSaved
 }: {
   open: boolean
   onOpenChange: (o: boolean) => void
   recipe?: CopaRecipeWithIngredients | null
+  defaultType?: RecipeType
   onSaved: () => void
 }): React.JSX.Element {
   const [products, setProducts] = useState<Product[]>([])
   const [name, setName] = useState('')
+  const [recipeType, setRecipeType] = useState<RecipeType>('copao')
+  const [description, setDescription] = useState('')
   const [rows, setRows] = useState<IngRow[]>([])
   const [pickId, setPickId] = useState('')
   const [measure, setMeasure] = useState<'dose' | 'unit'>('dose')
@@ -70,6 +75,8 @@ export function RecipeFormDialog({
     if (!open) return
     api.products.list().then(setProducts).catch(() => setProducts([]))
     setName(recipe?.name ?? '')
+    setRecipeType(recipe?.recipeType ?? defaultType)
+    setDescription(recipe?.description ?? '')
     setPickId('')
     setMeasure('dose')
     setBottle('')
@@ -94,7 +101,7 @@ export function RecipeFormDialog({
       setMargin('100')
       setDirectPrice('')
     }
-  }, [open, recipe])
+  }, [open, recipe, defaultType])
 
   // Reconcilia custos (e bottleMl padrão) quando a lista de produtos chega.
   useEffect(() => {
@@ -171,7 +178,7 @@ export function RecipeFormDialog({
 
   async function save(): Promise<void> {
     if (!name.trim()) {
-      toast.warning('Informe o nome do copão.')
+      toast.warning('Informe o nome da receita.')
       return
     }
     if (rows.length === 0) {
@@ -182,6 +189,8 @@ export function RecipeFormDialog({
     try {
       const input = {
         name: name.trim(),
+        recipeType,
+        description: description.trim() || null,
         ingredients: rows.map((r) => ({
           productId: r.productId,
           mlUsed: r.amount,
@@ -192,11 +201,11 @@ export function RecipeFormDialog({
       }
       if (recipe) await api.copa.update(recipe.id, input)
       else await api.copa.create(input)
-      toast.success(recipe ? 'Copão atualizado.' : 'Copão cadastrado.')
+      toast.success(recipe ? 'Receita atualizada.' : 'Receita cadastrada.')
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      toast.error('Erro ao salvar copão', { description: (err as Error).message })
+      toast.error('Erro ao salvar receita', { description: (err as Error).message })
     } finally {
       setSaving(false)
     }
@@ -206,16 +215,42 @@ export function RecipeFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{recipe ? 'Editar copão' : 'Novo copão'}</DialogTitle>
+          <DialogTitle>{recipe ? 'Editar receita' : 'Nova receita'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2 space-y-1.5">
+              <Label>Nome da receita *</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex.: Copão de Whisky com energético"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo</Label>
+              <Select value={recipeType} onValueChange={(v) => setRecipeType(v as RecipeType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECIPE_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
-            <Label>Nome do copão *</Label>
+            <Label className="text-xs text-muted-foreground">Descrição / modo de preparo (opcional)</Label>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex.: Copão de Whisky com energético"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Ex.: 2 doses de whisky, completar com energético e gelo"
             />
           </div>
 
@@ -362,7 +397,7 @@ export function RecipeFormDialog({
               <p className="text-lg font-bold text-muted-foreground">{formatBRL(saleRef)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Venda do copão</p>
+              <p className="text-xs text-muted-foreground">Venda da receita</p>
               <p className="text-lg font-bold text-primary">{formatBRL(salePreview)}</p>
             </div>
             <div>
@@ -380,7 +415,7 @@ export function RecipeFormDialog({
             Cancelar
           </Button>
           <Button onClick={save} disabled={saving}>
-            Salvar copão
+            Salvar receita
           </Button>
         </DialogFooter>
       </DialogContent>

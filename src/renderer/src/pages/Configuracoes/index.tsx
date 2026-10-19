@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Save, Store, Receipt, Printer } from 'lucide-react'
+import { Save, Palette, Receipt, Printer, Check, Beer } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,11 +16,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { api } from '@/lib/api'
 import { useSettingsStore } from '@/stores/settings'
+import { BRAND_COLORS } from '@/config/brandColors'
+import { cn } from '@/lib/utils'
 import type { FiscalConfig } from '@shared/types'
 import { toast } from 'sonner'
 
 export function ConfiguracoesPage(): React.JSX.Element {
   const [storeName, setStoreName] = useState('')
+  const [tagline, setTagline] = useState('')
   const [fiscal, setFiscal] = useState<FiscalConfig>({
     enabled: false,
     providerUrl: '',
@@ -34,9 +37,13 @@ export function ConfiguracoesPage(): React.JSX.Element {
   const [printers, setPrinters] = useState<{ name: string; displayName: string }[]>([])
   const [savingPrinter, setSavingPrinter] = useState(false)
   const applyStoreName = useSettingsStore((s) => s.setStoreName)
+  const applyTagline = useSettingsStore((s) => s.setTagline)
+  const applyBrand = useSettingsStore((s) => s.setBrandColor)
+  const brandColor = useSettingsStore((s) => s.brandColor)
 
   useEffect(() => {
     api.settings.get('store_name').then((v) => setStoreName(v ?? ''))
+    api.settings.get('store_tagline').then((v) => setTagline(v ?? ''))
     api.fiscal.getConfig().then(setFiscal).catch(() => {})
     api.settings.get('thermal_printer_name').then((v) => setPrinterName(v ?? ''))
     api.settings.get('thermal_width').then((v) => setPrinterWidth(v || '80mm'))
@@ -60,8 +67,11 @@ export function ConfiguracoesPage(): React.JSX.Element {
     setSavingGeneral(true)
     try {
       await api.settings.set('store_name', storeName.trim())
+      await api.settings.set('store_tagline', tagline.trim())
+      await api.settings.set('brand_color', brandColor)
       applyStoreName(storeName.trim()) // reflete na sidebar e no título na hora
-      toast.success('Configurações salvas.')
+      applyTagline(tagline.trim())
+      toast.success('Identidade visual salva.')
     } catch (err) {
       toast.error('Erro ao salvar', { description: (err as Error).message })
     } finally {
@@ -87,20 +97,78 @@ export function ConfiguracoesPage(): React.JSX.Element {
 
       <ScrollArea className="flex-1">
         <div className="mx-auto max-w-2xl space-y-6 p-8">
-          {/* Geral */}
+          {/* Identidade visual */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Store className="h-5 w-5" /> Geral
+                <Palette className="h-5 w-5" /> Identidade visual
               </CardTitle>
+              <CardDescription className="text-base">
+                Personalize o nome, o slogan e a cor do seu estabelecimento. As mudanças
+                aparecem na hora.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>Nome do estabelecimento</Label>
-                <Input value={storeName} onChange={(e) => setStoreName(e.target.value)} />
+            <CardContent className="space-y-5">
+              {/* Prévia */}
+              <div className="flex items-center gap-3 rounded-xl border bg-card/60 p-4">
+                <div className="brand-gradient flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-sm">
+                  <Beer className="h-7 w-7" />
+                </div>
+                <div className="min-w-0">
+                  <p className="line-clamp-1 text-lg font-bold">{storeName || 'Seu estabelecimento'}</p>
+                  <p className="line-clamp-1 text-sm text-muted-foreground">
+                    {tagline || 'Gestão & Crediário'}
+                  </p>
+                </div>
               </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Nome do estabelecimento</Label>
+                  <Input
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    placeholder="Ex.: Depósito do Zé"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Slogan</Label>
+                  <Input
+                    value={tagline}
+                    onChange={(e) => setTagline(e.target.value)}
+                    placeholder="Ex.: Bebidas geladas & conveniência"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Cor da marca</Label>
+                <div className="flex flex-wrap gap-2.5">
+                  {BRAND_COLORS.map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => applyBrand(b.id)}
+                      title={b.label}
+                      className={cn(
+                        'relative h-10 w-10 rounded-full ring-2 ring-offset-2 ring-offset-background transition-transform hover:scale-110',
+                        brandColor === b.id ? 'ring-foreground' : 'ring-transparent'
+                      )}
+                      style={{ backgroundColor: `hsl(${b.primary})` }}
+                    >
+                      {brandColor === b.id && (
+                        <Check
+                          className="absolute inset-0 m-auto h-5 w-5"
+                          style={{ color: `hsl(${b.primaryForeground})` }}
+                        />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <Button onClick={saveGeneral} disabled={savingGeneral}>
-                <Save className="h-4 w-4" /> Salvar
+                <Save className="h-4 w-4" /> Salvar identidade
               </Button>
             </CardContent>
           </Card>
@@ -158,7 +226,7 @@ export function ConfiguracoesPage(): React.JSX.Element {
                 <Receipt className="h-5 w-5" /> Módulo Fiscal
               </CardTitle>
               <CardDescription className="text-base">
-                Opcional. Quando ativo, permite emitir nota no fechamento da mesa.
+                Opcional. Quando ativo, permite emitir nota no fechamento da comanda.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
