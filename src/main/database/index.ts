@@ -70,7 +70,9 @@ function seedDefaults(): void {
   const defaults: Record<string, string> = {
     fiscal_enabled: 'false',
     financial_password: '', // vazio = sem senha configurada ainda
-    store_name: 'Depósito de Bebidas'
+    store_name: 'Depósito de Bebidas',
+    store_tagline: 'Gestão & Crediário',
+    brand_color: 'emerald'
   }
   const insert = _sqlite!.prepare(
     'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)'

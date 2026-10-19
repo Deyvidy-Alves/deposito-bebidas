@@ -19,22 +19,33 @@ const timestamp = (name: string) =>
 // ───────────────────────────── Clientes ─────────────────────────────
 export const clients = sqliteTable('clients', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  // Identidade global para sincronização na nuvem (gerada por trigger). Ver 0005.
+  uuid: text('uuid'),
   name: text('name').notNull(),
   nickname: text('nickname'),
   phone: text('phone'),
-  createdAt: timestamp('created_at')
+  // Exclusão lógica — preserva histórico e permite sincronizar remoções.
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: timestamp('created_at'),
+  // Nullable e sem default: SQLite não aceita default de expressão em ADD COLUMN.
+  // O app grava `nowSql` ao alterar; null = nunca modificado desde a criação.
+  updatedAt: text('updated_at')
 })
 
 // ─────────────────────── Mesas (sessões de consumo) ──────────────────
 export const tables = sqliteTable('tables', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  uuid: text('uuid'),
   // Rótulo opcional para a mesa (ex.: "Mesa 3", "Varanda")
   label: text('label'),
   status: text('status', { enum: ['open', 'closed'] })
     .notNull()
     .default('open'),
   createdAt: timestamp('created_at'),
-  closedAt: text('closed_at')
+  closedAt: text('closed_at'),
+  // Nullable e sem default: SQLite não aceita default de expressão em ADD COLUMN.
+  // O app grava `nowSql` ao alterar; null = nunca modificado desde a criação.
+  updatedAt: text('updated_at')
 })
 
 // Relação N:N entre mesas e clientes
@@ -58,6 +69,7 @@ export const tableClients = sqliteTable(
 // ──────────────────────────── Produtos ──────────────────────────────
 export const products = sqliteTable('products', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  uuid: text('uuid'),
   name: text('name').notNull(),
   category: text('category'),
   unit: text('unit', { enum: ['un', 'ml', 'kg'] })
@@ -71,7 +83,10 @@ export const products = sqliteTable('products', {
   currentStock: real('current_stock').notNull().default(0),
   barcode: text('barcode'),
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
-  createdAt: timestamp('created_at')
+  createdAt: timestamp('created_at'),
+  // Nullable e sem default: SQLite não aceita default de expressão em ADD COLUMN.
+  // O app grava `nowSql` ao alterar; null = nunca modificado desde a criação.
+  updatedAt: text('updated_at')
 })
 
 // ─────────────────── Itens consumidos em uma mesa ───────────────────
@@ -79,6 +94,7 @@ export const tableItems = sqliteTable(
   'table_items',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
+    uuid: text('uuid'),
     tableId: integer('table_id')
       .notNull()
       .references(() => tables.id, { onDelete: 'cascade' }),
@@ -91,7 +107,10 @@ export const tableItems = sqliteTable(
     subtotal: real('subtotal').notNull().default(0),
     // Opcional: qual cliente consumiu (para rateio manual por item)
     clientId: integer('client_id').references(() => clients.id),
-    createdAt: timestamp('created_at')
+    createdAt: timestamp('created_at'),
+    // Nullable e sem default: SQLite não aceita default de expressão em ADD COLUMN.
+  // O app grava `nowSql` ao alterar; null = nunca modificado desde a criação.
+  updatedAt: text('updated_at')
   },
   (t) => ({
     byTable: index('idx_table_items_table').on(t.tableId)
@@ -122,6 +141,7 @@ export const payments = sqliteTable(
   'payments',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
+    uuid: text('uuid'),
     tableId: integer('table_id').references(() => tables.id, { onDelete: 'set null' }),
     clientId: integer('client_id').references(() => clients.id),
     method: text('method', {
@@ -143,6 +163,7 @@ export const creditTransactions = sqliteTable(
   'credit_transactions',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
+    uuid: text('uuid'),
     clientId: integer('client_id')
       .notNull()
       .references(() => clients.id, { onDelete: 'cascade' }),
@@ -166,6 +187,7 @@ export const stockMovements = sqliteTable(
   'stock_movements',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
+    uuid: text('uuid'),
     productId: integer('product_id')
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
@@ -186,16 +208,29 @@ export const stockMovements = sqliteTable(
   })
 )
 
-// ───────────────────── Receitas de copão ────────────────────────────
+// ──────────── Receitas / Fichas técnicas (copão, drink, combo…) ──────────────
 export const copaRecipes = sqliteTable('copa_recipes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  uuid: text('uuid'),
   name: text('name').notNull(),
+  // Tipo da ficha técnica: copão, drink, dose, combo, porção, outro.
+  recipeType: text('recipe_type', {
+    enum: ['copao', 'drink', 'dose', 'combo', 'porcao', 'outro']
+  })
+    .notNull()
+    .default('copao'),
+  // Descrição livre (ex.: modo de preparo, observações do combo).
+  description: text('description'),
   totalMl: real('total_ml').notNull().default(0),
   costPrice: real('cost_price').notNull().default(0),
   salePrice: real('sale_price').notNull().default(0),
   marginPct: real('margin_pct'),
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
-  createdAt: timestamp('created_at')
+  createdAt: timestamp('created_at'),
+  // Marca d'água de atualização — base para sincronização na nuvem (Fase 2).
+  // Nullable e sem default: SQLite não aceita default de expressão em ADD COLUMN.
+  // O app grava `nowSql` ao alterar; null = nunca modificado desde a criação.
+  updatedAt: text('updated_at')
 })
 
 export const copaIngredients = sqliteTable(
@@ -219,12 +254,18 @@ export const copaIngredients = sqliteTable(
 // ───────────────────────────── Despesas ─────────────────────────────
 export const expenses = sqliteTable('expenses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  uuid: text('uuid'),
   description: text('description').notNull(),
   category: text('category'),
   amount: real('amount').notNull().default(0),
   // Data de competência (YYYY-MM-DD)
   date: text('date').notNull(),
-  createdAt: timestamp('created_at')
+  // Exclusão lógica — preserva histórico e permite sincronizar remoções.
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: timestamp('created_at'),
+  // Nullable e sem default: SQLite não aceita default de expressão em ADD COLUMN.
+  // O app grava `nowSql` ao alterar; null = nunca modificado desde a criação.
+  updatedAt: text('updated_at')
 })
 
 // ──────────────────── Configurações do sistema ──────────────────────
@@ -232,6 +273,27 @@ export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value')
 })
+
+// ──────── Fila de sincronização (outbox) — base do sync na nuvem ─────────
+// Populada por triggers (ver migration 0005). Cada escrita local vira uma
+// pendência (upsert/delete) identificada pelo uuid da linha de origem.
+export const syncOutbox = sqliteTable(
+  'sync_outbox',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    // Nome da tabela de origem (ex.: 'clients', 'products').
+    entity: text('entity').notNull(),
+    // uuid da linha afetada.
+    rowUuid: text('row_uuid').notNull(),
+    op: text('op', { enum: ['upsert', 'delete'] }).notNull(),
+    createdAt: timestamp('created_at'),
+    // Null = pendente de envio; preenchido quando confirmado pela nuvem.
+    syncedAt: text('synced_at')
+  },
+  (t) => ({
+    byPending: index('idx_outbox_pending').on(t.syncedAt)
+  })
+)
 
 // ─────────────────────────── Tipos inferidos ────────────────────────
 export type Client = typeof clients.$inferSelect
@@ -257,3 +319,4 @@ export type NewCopaIngredient = typeof copaIngredients.$inferInsert
 export type Expense = typeof expenses.$inferSelect
 export type NewExpense = typeof expenses.$inferInsert
 export type Setting = typeof settings.$inferSelect
+export type SyncOutboxEntry = typeof syncOutbox.$inferSelect

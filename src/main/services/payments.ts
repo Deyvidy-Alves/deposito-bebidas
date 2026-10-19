@@ -2,6 +2,7 @@ import { and, eq, sql } from 'drizzle-orm'
 import { getDb } from '../database'
 import { creditTransactions, payments, tableClients, tables } from '../database/schema'
 import { round2 } from '../lib/money'
+import { nowSql } from '../lib/time'
 import type { CloseTableInput, CloseTableResult, SettleParticipantInput } from '@shared/types'
 
 /**
@@ -15,8 +16,8 @@ export const PaymentsService = {
     const db = getDb()
     return db.transaction(() => {
       const table = db.select().from(tables).where(eq(tables.id, input.tableId)).get()
-      if (!table) throw new Error('Mesa não encontrada.')
-      if (table.status !== 'open') throw new Error('Mesa já está fechada.')
+      if (!table) throw new Error('Comanda não encontrada.')
+      if (table.status !== 'open') throw new Error('Comanda já está fechada.')
 
       for (const s of input.settlements) {
         PaymentsService.settleOne(input.tableId, s, input.operator ?? null)
@@ -32,7 +33,7 @@ export const PaymentsService = {
 
       if (remainingParticipants === 0) {
         db.update(tables)
-          .set({ status: 'closed', closedAt: sql`(datetime('now', 'localtime'))` })
+          .set({ status: 'closed', closedAt: nowSql, updatedAt: nowSql })
           .where(eq(tables.id, input.tableId))
           .run()
         return { tableClosed: true, remainingParticipants: 0 }
@@ -52,7 +53,7 @@ export const PaymentsService = {
       .from(tableClients)
       .where(and(eq(tableClients.tableId, tableId), eq(tableClients.clientId, s.clientId)))
       .get()
-    if (!tc) throw new Error('Participante não pertence à mesa.')
+    if (!tc) throw new Error('Participante não pertence à comanda.')
     if (tc.settled) throw new Error('Participante já liquidado.')
 
     if (s.method === 'credit') {
@@ -63,7 +64,7 @@ export const PaymentsService = {
           amount,
           tableId,
           type: 'charge',
-          description: `Consumo mesa #${tableId}`,
+          description: `Consumo comanda #${tableId}`,
           operator
         })
         .run()
@@ -92,7 +93,7 @@ export const PaymentsService = {
             amount: credit,
             tableId,
             type: 'charge',
-            description: `Consumo mesa #${tableId} (parte no crediário)`,
+            description: `Consumo comanda #${tableId} (parte no crediário)`,
             operator
           })
           .run()

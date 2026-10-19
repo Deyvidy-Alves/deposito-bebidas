@@ -10,6 +10,7 @@ import { thermalPrintRoutes } from './services/thermalPrint'
 import { paymentsRoutes } from './services/payments'
 import { creditRoutes } from './services/credit'
 import { copaRoutes } from './services/copa'
+import { syncRoutes } from './services/sync'
 import { financeRoutes } from './services/finance'
 import { financeExportRoutes } from './services/financeExport'
 import { fiscalRoutes } from './services/fiscal'
@@ -30,6 +31,7 @@ const routes: RouteMap = {
   ...paymentsRoutes,
   ...creditRoutes,
   ...copaRoutes,
+  ...syncRoutes,
   ...financeRoutes,
   ...financeExportRoutes,
   ...fiscalRoutes

@@ -33,7 +33,7 @@ export const FiscalService = {
   buildInvoice(tableId: number): InvoicePayload {
     const db = getDb()
     const table = db.select().from(tables).where(eq(tables.id, tableId)).get()
-    if (!table) throw new Error('Mesa não encontrada.')
+    if (!table) throw new Error('Comanda não encontrada.')
 
     const items = db.select().from(tableItems).where(eq(tableItems.tableId, tableId)).all()
     const pays = db.select().from(payments).where(eq(payments.tableId, tableId)).all()

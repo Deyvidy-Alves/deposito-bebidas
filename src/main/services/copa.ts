@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { getDb } from '../database'
 import { copaIngredients, copaRecipes, products } from '../database/schema'
 import { round2, sumMoney } from '../lib/money'
+import { nowSql } from '../lib/time'
 import { ingredientStockUnits } from '../lib/copa'
 import type {
   CopaIngredientInput,
@@ -89,7 +90,7 @@ export const CopaService = {
 
   create(input: CopaRecipeInput): CopaRecipeWithIngredients {
     const db = getDb()
-    if (!input.name?.trim()) throw new Error('Informe o nome do copão.')
+    if (!input.name?.trim()) throw new Error('Informe o nome da receita.')
     if (!input.ingredients?.length) throw new Error('Adicione ao menos um insumo.')
 
     return db.transaction((tx) => {
@@ -101,7 +102,15 @@ export const CopaService = {
 
       const recipe = tx
         .insert(copaRecipes)
-        .values({ name: input.name.trim(), totalMl, costPrice: cost, salePrice, marginPct })
+        .values({
+          name: input.name.trim(),
+          recipeType: input.recipeType ?? 'copao',
+          description: input.description?.trim() || null,
+          totalMl,
+          costPrice: cost,
+          salePrice,
+          marginPct
+        })
         .returning()
         .get()
 
@@ -128,7 +137,16 @@ export const CopaService = {
       const { salePrice, marginPct } = resolvePricing(cost, input)
 
       tx.update(copaRecipes)
-        .set({ name: input.name.trim(), totalMl, costPrice: cost, salePrice, marginPct })
+        .set({
+          name: input.name.trim(),
+          recipeType: input.recipeType ?? 'copao',
+          description: input.description?.trim() || null,
+          totalMl,
+          costPrice: cost,
+          salePrice,
+          marginPct,
+          updatedAt: nowSql
+        })
         .where(eq(copaRecipes.id, id))
         .run()
       tx.delete(copaIngredients).where(eq(copaIngredients.recipeId, id)).run()
@@ -147,7 +165,11 @@ export const CopaService = {
   },
 
   remove(id: number): void {
-    getDb().update(copaRecipes).set({ active: false }).where(eq(copaRecipes.id, id)).run()
+    getDb()
+      .update(copaRecipes)
+      .set({ active: false, updatedAt: nowSql })
+      .where(eq(copaRecipes.id, id))
+      .run()
   }
 }
 

@@ -36,7 +36,7 @@ function fitLine(left: string, right: string, width: number): string {
 function buildReceipt(tableId: number): PosPrintData[] {
   const d = TablesService.getDetails(tableId)
   const store = SettingsService.get('store_name') ?? 'Deposito'
-  const title = d.label ?? `Mesa #${d.id}`
+  const title = d.label ?? `Comanda #${d.id}`
   const is58 = (SettingsService.get('thermal_width') || '80mm') === '58mm'
   const cols = is58 ? 30 : 40 // caracteres por linha conforme o papel
 

@@ -21,7 +21,7 @@ function formatDateTime(value: string | null): string {
 export function buildBillHtml(tableId: number): string {
   const d = TablesService.getDetails(tableId)
   const store = SettingsService.get('store_name') ?? 'Depósito'
-  const title = d.label ?? `Mesa #${d.id}`
+  const title = d.label ?? `Comanda #${d.id}`
 
   const itemRows = d.items
     .map(
@@ -89,7 +89,7 @@ export const BillExportService = {
     const parent = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
     const { canceled, filePath } = await dialog.showSaveDialog(parent!, {
       title: 'Salvar comanda',
-      defaultPath: `comanda_mesa_${tableId}.pdf`,
+      defaultPath: `comanda_${tableId}.pdf`,
       filters: [{ name: 'PDF', extensions: ['pdf'] }]
     })
     if (canceled || !filePath) return null

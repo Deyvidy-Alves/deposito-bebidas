@@ -5,6 +5,8 @@
  */
 
 export type ProductUnit = 'un' | 'ml' | 'kg'
+/** Tipo de ficha técnica / receita vendável. */
+export type RecipeType = 'copao' | 'drink' | 'dose' | 'combo' | 'porcao' | 'outro'
 export type TableStatus = 'open' | 'closed'
 export type PaymentMethod = 'cash' | 'pix' | 'card' | 'credit' | 'mixed'
 export type CreditType = 'charge' | 'payment'
@@ -15,7 +17,9 @@ export interface Client {
   name: string
   nickname: string | null
   phone: string | null
+  active: boolean
   createdAt: string
+  updatedAt: string | null
 }
 
 export interface Product {
@@ -31,6 +35,7 @@ export interface Product {
   barcode: string | null
   active: boolean
   createdAt: string
+  updatedAt: string | null
 }
 
 export interface TableEntity {
@@ -39,6 +44,7 @@ export interface TableEntity {
   status: TableStatus
   createdAt: string
   closedAt: string | null
+  updatedAt: string | null
 }
 
 export interface TableItem {
@@ -52,6 +58,7 @@ export interface TableItem {
   subtotal: number
   clientId: number | null
   createdAt: string
+  updatedAt: string | null
 }
 
 export interface Payment {
@@ -91,12 +98,15 @@ export interface StockMovement {
 export interface CopaRecipe {
   id: number
   name: string
+  recipeType: RecipeType
+  description: string | null
   totalMl: number
   costPrice: number
   salePrice: number
   marginPct: number | null
   active: boolean
   createdAt: string
+  updatedAt: string | null
 }
 
 export interface CopaIngredient {
@@ -113,7 +123,9 @@ export interface Expense {
   category: string | null
   amount: number
   date: string
+  active: boolean
   createdAt: string
+  updatedAt: string | null
 }
 
 // ─────────────────────── DTOs compostos ───────────────────────
@@ -171,6 +183,8 @@ export interface CopaIngredientInput {
 
 export interface CopaRecipeInput {
   name: string
+  recipeType?: RecipeType
+  description?: string | null
   ingredients: CopaIngredientInput[]
   salePrice?: number | null
   marginPct?: number | null
@@ -217,6 +231,11 @@ export interface ClientInput {
   name: string
   nickname?: string | null
   phone?: string | null
+  /**
+   * Saldo devedor anterior (migração de outro sistema). Só usado na criação:
+   * lança uma dívida de crediário já em aberto para o cliente.
+   */
+  openingDebt?: number | null
 }
 
 export interface ProductInput {

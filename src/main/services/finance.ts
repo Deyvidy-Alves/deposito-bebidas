@@ -11,6 +11,7 @@ import {
   tableItems
 } from '../database/schema'
 import { round2 } from '../lib/money'
+import { nowSql } from '../lib/time'
 import { SettingsService } from './settings'
 import type {
   CashFlowDay,
@@ -99,7 +100,7 @@ export const FinanceService = {
     const expRow = db
       .select({ v: sql<number>`coalesce(sum(${expenses.amount}), 0)` })
       .from(expenses)
-      .where(sql`${expenses.date} between ${period.from} and ${period.to}`)
+      .where(sql`${expenses.active} = 1 and ${expenses.date} between ${period.from} and ${period.to}`)
       .get()
     const expensesTotal = round2(expRow?.v ?? 0)
 
@@ -190,7 +191,7 @@ export const FinanceService = {
     const outflow = db
       .select({ date: expenses.date, v: sql<number>`coalesce(sum(${expenses.amount}), 0)` })
       .from(expenses)
-      .where(sql`${expenses.date} between ${period.from} and ${period.to}`)
+      .where(sql`${expenses.active} = 1 and ${expenses.date} between ${period.from} and ${period.to}`)
       .groupBy(expenses.date)
       .all()
 
@@ -209,7 +210,7 @@ export const FinanceService = {
     return getDb()
       .select()
       .from(expenses)
-      .where(sql`${expenses.date} between ${period.from} and ${period.to}`)
+      .where(sql`${expenses.active} = 1 and ${expenses.date} between ${period.from} and ${period.to}`)
       .orderBy(desc(expenses.date))
       .all()
   },
@@ -230,7 +231,8 @@ export const FinanceService = {
   },
 
   removeExpense(id: number): void {
-    getDb().delete(expenses).where(eq(expenses.id, id)).run()
+    // Exclusão lógica — preserva histórico e sincroniza a remoção.
+    getDb().update(expenses).set({ active: false, updatedAt: nowSql }).where(eq(expenses.id, id)).run()
   }
 }
 

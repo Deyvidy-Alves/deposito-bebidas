@@ -2,6 +2,7 @@ import { and, desc, eq, like, or, sql } from 'drizzle-orm'
 import { getDb } from '../database'
 import { products, stockMovements } from '../database/schema'
 import { round2 } from '../lib/money'
+import { nowSql } from '../lib/time'
 import type {
   Product,
   ProductInput,
@@ -30,7 +31,7 @@ export function applyStockMovement(
   const db = getDb()
   const delta = opts.delta ?? (type === 'in' ? quantity : type === 'out' ? -quantity : 0)
   db.update(products)
-    .set({ currentStock: sql`${products.currentStock} + ${delta}` })
+    .set({ currentStock: sql`${products.currentStock} + ${delta}`, updatedAt: nowSql })
     .where(eq(products.id, productId))
     .run()
   db.insert(stockMovements)
@@ -134,7 +135,8 @@ export const ProductsService = {
         costPrice: round2(input.costPrice ?? 0),
         salePrice: round2(input.salePrice ?? 0),
         minStock: round2(input.minStock ?? 0),
-        barcode: input.barcode?.trim() || null
+        barcode: input.barcode?.trim() || null,
+        updatedAt: nowSql
       })
       .where(eq(products.id, id))
       .returning()
@@ -145,7 +147,7 @@ export const ProductsService = {
 
   remove(id: number): void {
     // Exclusão lógica para preservar histórico de vendas/movimentações.
-    getDb().update(products).set({ active: false }).where(eq(products.id, id)).run()
+    getDb().update(products).set({ active: false, updatedAt: nowSql }).where(eq(products.id, id)).run()
   },
 
   addEntry(input: StockEntryInput): void {
@@ -161,7 +163,7 @@ export const ProductsService = {
       if (input.unitCost != null && input.unitCost > 0) {
         getDb()
           .update(products)
-          .set({ costPrice: round2(input.unitCost) })
+          .set({ costPrice: round2(input.unitCost), updatedAt: nowSql })
           .where(eq(products.id, input.productId))
           .run()
       }

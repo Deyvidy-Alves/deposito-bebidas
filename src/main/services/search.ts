@@ -16,7 +16,9 @@ export const SearchService = {
     const cs = db
       .select()
       .from(clients)
-      .where(or(like(clients.name, term), like(clients.nickname, term)))
+      .where(
+        and(eq(clients.active, true), or(like(clients.name, term), like(clients.nickname, term)))
+      )
       .limit(6)
       .all()
     for (const c of cs) {
@@ -71,7 +73,7 @@ export const SearchService = {
       results.push({
         kind: 'table',
         id: t.id,
-        title: t.label ? `${t.label}` : `Mesa #${t.id}`,
+        title: t.label ? `${t.label}` : `Comanda #${t.id}`,
         subtitle: `${t.status === 'open' ? 'Aberta' : 'Fechada'} · ${formatBRL(totalRow?.total ?? 0)}`
       })
     }

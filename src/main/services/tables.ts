@@ -14,6 +14,7 @@ import {
 } from '../database/schema'
 import { round2, splitEqually } from '../lib/money'
 import { ingredientStockUnits } from '../lib/copa'
+import { nowSql } from '../lib/time'
 import { applyStockMovement } from './products'
 import type {
   AddItemInput,
@@ -115,7 +116,7 @@ export const TablesService = {
   getDetails(tableId: number): TableDetails {
     const db = getDb()
     const t = db.select().from(tables).where(eq(tables.id, tableId)).get()
-    if (!t) throw new Error('Mesa não encontrada.')
+    if (!t) throw new Error('Comanda não encontrada.')
 
     const participants = db
       .select({
@@ -228,7 +229,7 @@ export const TablesService = {
 
   removeClient(tableId: number, clientId: number): void {
     const s = settledAmount(tableId, clientId)
-    if (s > 0.009) throw new Error('Participante já possui pagamento/crediário nesta mesa.')
+    if (s > 0.009) throw new Error('Participante já possui pagamento/crediário nesta comanda.')
     getDb()
       .delete(tableClients)
       .where(and(eq(tableClients.tableId, tableId), eq(tableClients.clientId, clientId)))
@@ -241,7 +242,7 @@ export const TablesService = {
     if (!(qty > 0)) throw new Error('Quantidade deve ser maior que zero.')
 
     const t = db.select().from(tables).where(eq(tables.id, input.tableId)).get()
-    if (!t || t.status !== 'open') throw new Error('Mesa não está aberta.')
+    if (!t || t.status !== 'open') throw new Error('Comanda não está aberta.')
 
     db.transaction(() => {
       if (input.recipeId) {
@@ -286,7 +287,7 @@ export const TablesService = {
     insertConsumers(row.id, input.consumerIds)
 
     applyStockMovement(product.id, 'out', qty, {
-      reason: input.override ? `Venda (override: ${input.overrideReason ?? 'sem estoque'})` : 'Venda em mesa',
+      reason: input.override ? `Venda (override: ${input.overrideReason ?? 'sem estoque'})` : 'Venda em comanda',
       referenceId: input.tableId
     })
   },
@@ -309,7 +310,7 @@ export const TablesService = {
       if (!p) continue
       const deduct = deductionForIngredient(p.unit, p.volumePerUnit, ing.mlUsed, qty)
       if (p.currentStock < deduct && !input.override) {
-        throw new Error(`${STOCK_ERROR_PREFIX}${p.name} insuficiente para o copão "${recipe.name}".`)
+        throw new Error(`${STOCK_ERROR_PREFIX}${p.name} insuficiente para a receita "${recipe.name}".`)
       }
     }
 
@@ -337,7 +338,7 @@ export const TablesService = {
       if (!p) continue
       const deduct = deductionForIngredient(p.unit, p.volumePerUnit, ing.mlUsed, qty)
       applyStockMovement(p.id, 'out', round2(deduct), {
-        reason: `Copão: ${recipe.name}`,
+        reason: `Receita: ${recipe.name}`,
         referenceId: input.tableId
       })
     }
@@ -387,7 +388,7 @@ export const TablesService = {
       }
 
       db.update(tableItems)
-        .set({ quantity: qty, subtotal: round2(item.unitPrice * qty) })
+        .set({ quantity: qty, subtotal: round2(item.unitPrice * qty), updatedAt: nowSql })
         .where(eq(tableItems.id, itemId))
         .run()
     })
@@ -420,7 +421,7 @@ export const TablesService = {
       // Devolve estoque (produto direto ou insumos do copão).
       if (item.productId) {
         applyStockMovement(item.productId, 'in', item.quantity, {
-          reason: 'Estorno de item da mesa',
+          reason: 'Estorno de item da comanda',
           referenceId: item.tableId
         })
       } else if (item.recipeId) {
@@ -434,7 +435,7 @@ export const TablesService = {
           if (!p) continue
           const back = deductionForIngredient(p.unit, p.volumePerUnit, ing.mlUsed, item.quantity)
           applyStockMovement(p.id, 'in', round2(back), {
-            reason: 'Estorno de copão',
+            reason: 'Estorno de receita',
             referenceId: item.tableId
           })
         }
